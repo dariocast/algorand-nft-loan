@@ -10,8 +10,6 @@
 The problem identified is the access to liquidity in terms of cryptocurrency or specific assets that could be addressed with a loan mechanism of owned NFT.
 
 ## Smart contract specifications
-B receives a loan from L using its NFT as collateral. The loan amount is decided by a candle auction protocol. The loan has a default interest rate per block. A portion of the interest goes to the lender and the remaining part to the smart contract creators.
-
 The smart contract is able to accept an NFT from an account (borrower) for a period of time, storing info on the global state. During this period other accounts (lenders) are able to bid in ALGO for that NFT. At any time during this initial period, the borrower can interact with the contract to get back the NFT (in this case the highest bidded amount returns to the lender) or to accept the loan. In the second case, there is a predefined period of time in which the borrower must repay the loan to the lender, otherwise, after the deadline, the lender can obtain the NFT by interacting with the contract.
 So, we have two different roles:
 - The Borrower (B)
