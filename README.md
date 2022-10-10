@@ -13,7 +13,7 @@ The problem identified is the access to liquidity in terms of cryptocurrency or 
 The smart contract is able to accept an NFT from an account (borrower) for a period of time, storing info on the global state. During this period other accounts (lenders) are able to bid in ALGO for that NFT. At any time during this initial period, the borrower can interact with the contract to get back the NFT (in this case the bidded amount returns to the lender) or to accept the loan. In the second case, there is a predefined period of time in which the borrower must repay the loan to the lender, otherwise, after the deadline, the lender can obtain the NFT by interacting with the contract.
 So, we have two different roles:
 - The Borrower (B)
-- The Lender (S)
+- The Lender (L)
 
 The Stateful Smart Contract tracks a set of offers. Each offer is represented by a record containing the following information:
 	
