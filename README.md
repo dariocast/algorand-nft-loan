@@ -68,7 +68,7 @@ LoanExpired can be invoked only by L after the payback deadline expires. L recei
 
 PayMe (creator_address)
 
-Can be only invoked by the creator(s) of the smart contract. Sends the currently collected fees to the creator's address.
+PayMe can only be invoked by the creator(s) of the smart contract. PayMe sends the currently collected fees to the creator's address.
 
 
 
