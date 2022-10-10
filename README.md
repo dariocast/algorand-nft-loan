@@ -1,6 +1,8 @@
 # Group 3 
-- [METTERE I NOMI IN ORDINE ALFABETICO]
--
+- Caporalese Vittorio
+- Castellano Dario
+- Renieri Margherita
+- Toffalini Alessandro
 
 # Algorand NFT Loan System
 
@@ -40,3 +42,7 @@ NFT is an Algorand Standard Asset with specific configuration described in the [
 ## Futures and business value
 The NFTs loan systems are geining increasing attention because they allow users to access to liquidity simply owning NFTs. A marketplace of this kind of contract on algorand could allow the interoperability between the NFT marketplace and DEFI.
 Even more, with algorand state proof this system may interact with other blockchain.
+
+## Future developments
+The initial idea involves two key players, a user who owns an NFT and would like to use it as collateral to access credit. And a counterparty willing to buy the NFT at a predefined price (chosen as the winner of an auction) who grants the minimum price in ALGO, all in exchange for repaying the loan in installments with a specified time interval and interest rate. One of the possible future developments is to enlarge the pool of potential lenders by considering splitting the NFT into several components. So that subsequently a community willing to lend cryptocurrency in exchange for fractional participation in the ownership of an NFT in case of default and alternatively the interest rate charged. 
+Another potential development is the use of stablecoin instead of classic cryptocurrencies, so that lending can be even more easily transformed into fiat currency.
