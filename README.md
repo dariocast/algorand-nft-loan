@@ -15,9 +15,8 @@ So, we have two different roles:
 - The Borrower (B)
 - The Lender (L)
 
-The Stateful Smart Contract tracks a set of offers. Each offer is represented by a record containing the following information:
+The Stateful Smart Contract stores the following information:
 	
-	- offer_identifier (the identifier of the current offer)
 	- NFT_ID (a handle to retrieve the correct NFT)
 	- borrower_address (the address of the borrower)
 	- lender_address (current bidder)
@@ -30,38 +29,38 @@ The Stateful Smart Contract tracks a set of offers. Each offer is represented by
 
 The smart contract supports the following operations.
 
-Offer (offer_identifier, NFT, borrower_address, loan_threshold, auction_deadline, payback_deadline)
+Offer (NFT, borrower_address, loan_threshold, auction_deadline, payback_deadline)
 
-B sends the NFT to the smart contract. B establishes a minimum loan threshold (loan_threshold), the number of blocks of the auction validity period (auction_period), and the loan payback deadline (payback_deadline), which is the number of blocks from when AcceptBid is invoked. B also submits a unique identifier (offer_identifier) for future references to this offer (the uniqueness of the identifier must be checked by the smart contract). The smart contract stores B's address (borrower_address) for future ownership transfers.
+B sends the NFT to the smart contract. B establishes a minimum loan threshold (loan_threshold), the number of blocks of the auction validity period (auction_period), and the loan payback deadline (payback_deadline), which is the number of blocks from when AcceptBid is invoked. The smart contract stores B's address (borrower_address) for future ownership transfers.
 
 
-Bid (offer_identifier, lender_address, n_Algos)
+Bid (lender_address, n_Algos)
 
 Bid is invokable only during the auction validity period. L sends some Algos (n_Algos) to the smart contract. The smart contract stores the lender's address (lender_address). The amount of Algos must be greater than the loan threshold and the current highest bid. The smart contract refunds the previous highest bid and replaces it with the new bid.
 
 
-AcceptBid (offer_identifier)
+AcceptBid ()
 
 AcceptBid is invokable only by B. The smart contract forwards n_Algos to B. The smart contract still owns the NFT. CancelOffer and Timeout can no longer be invoked.
 
 
-Timeout (offer_identifier)
+Timeout ()
 
 Timeout is invokable only after the auction ends and if AcceptBid is not invoked.  
 Anyone can invoke Timeout to return the managed assets (NFT, n_Algos) to their original owners. 
 
 
-CancelOffer (offer_identifier)
+CancelOffer ()
 
 Only B can invoke CancelOffer, and only if AcceptBid is not invoked. The smart contract returns the managed assets (NFT, n_Algos) to their original owners. 
 
 
-PayBack (offer_identifier, m_Algos, current_block)
+PayBack (m_Algos, current_block)
 
 B gives some Algos (m_Algos) to the smart contract. PayBack updates the current debt by summing the accumulated compound interest. m_Algos must repay at least the accumulated compound interest. If m_Algos exceeds B's current debt, the smart contract returns the exceeding Algos to B. The smart contract subtracts m_Algos from B's debt. The smart contract keeps the portion of the m_Algos entitled to the smart contract creators and forwards the remaining part to L. If B's debt goes to 0, the smart contract gives the NFT back to B. PayBack can be invoked after the payback deadline expires but not after LoanExpired is invoked.
 
 
-LoanExpired (offer_identifier)
+LoanExpired ()
 
 LoanExpired can be invoked only by L after the payback deadline expires. L receives the NFT from the smart contract. PayBack cannot be invoked anymore.
 
