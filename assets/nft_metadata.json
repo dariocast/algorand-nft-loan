@@ -1,0 +1,12 @@
+{
+  "title": "Token Metadata",
+  "type": "object",
+  "properties": {
+    "name": "G3 NFT",
+    "description": "G3 NFT",
+    "image": "https://raw.githubusercontent.com/dariocast/algorand-nft-loan/main/assets/g3_nft.png",
+    "image_integrity": "8f0d6afbec0ad293a7bae2c40a8bd916639d841c5835dd7c07d7aa9d3afa71be",
+    "external_url": "https://raw.githubusercontent.com/dariocast/algorand-nft-loan/main/assets/g3_nft.png",
+    "external_url_integrity": "8f0d6afbec0ad293a7bae2c40a8bd916639d841c5835dd7c07d7aa9d3afa71be"
+  }
+}

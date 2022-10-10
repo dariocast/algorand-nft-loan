@@ -1,9 +1,12 @@
 import json
 from hashlib import sha256
 
-from algosdk.future.transaction import AssetConfigTxn
+from algosdk.future.transaction import AssetConfigTxn, wait_for_confirmation
 
-def create_nft(client, private_key, address, asset_name, asset_unit_name, asset_url):
+default_nft_id = 0
+
+
+def create_default_nft(client, private_key, address, asset_name, asset_unit_name, asset_url):
     # create a new asset
     # note that the manager, reserve, freeze, and clawback
     # are all empty for the nft as specified in documentation
@@ -11,9 +14,11 @@ def create_nft(client, private_key, address, asset_name, asset_unit_name, asset_
 
     f = open('../../assets/nft_metadata.json')
     json_metadata = json.load(f)
+    f.close()
 
-    asset_metadata_hash = sha256(json.dumps(json_metadata).encode('utf-8'))
+    asset_metadata_hash = sha256(json.dumps(json_metadata).encode('utf-8')).digest()
 
+    print("Creating transaction...")
     txn = AssetConfigTxn(
         sender=address,
         sp=client.suggested_params(),
@@ -25,6 +30,7 @@ def create_nft(client, private_key, address, asset_name, asset_unit_name, asset_
         url=asset_url,
         metadata_hash=asset_metadata_hash,
         note=b"NFT creation",
+        strict_empty_address_check=False,
         manager="",
         reserve="",
         freeze="",
@@ -32,36 +38,23 @@ def create_nft(client, private_key, address, asset_name, asset_unit_name, asset_
     )
 
     # sign the transaction
+    print("Signing transaction...")
     signed_txn = txn.sign(private_key)
 
     # send the transaction to the network and retrieve the txid
+    print("Sending transaction...")
     txid = client.send_transaction(signed_txn)
 
     # wait for confirmation
-    client.wait_for_confirmation(txid)
+    print("Waiting for confirmation...")
+    wait_for_confirmation(algod_client=client, txid=txid)
 
     # retrieve the asset id of the newly created asset
-    asset_id = client.get_asset_info(txid)["asset-index"]
+    ptx = client.pending_transaction_info(txid)
+    asset_id = ptx["asset-index"]
     print("Created NFT with asset ID: {}".format(asset_id))
 
     return asset_id
-
-
-txn = AssetConfigTxn(sender=accounts[1]['pk'],
-                     sp=params,
-                     total=1,
-                     default_frozen=False,
-                     unit_name="ALICEART",
-                     asset_name="Alice's Artwork@arc3",
-                     manager="",
-                     reserve="",
-                     freeze="",
-                     clawback="",
-                     url="https://path/to/my/nft/asset/metadata.json",
-                     metadata_hash=json_metadata_hash,
-                     decimals=0)
-
-
 
 
 # Just as a reference, this is the json metadata that is used in ARC-003
