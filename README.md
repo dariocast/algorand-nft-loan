@@ -74,7 +74,21 @@ PayMe can only be invoked by the creator(s) of the smart contract. PayMe sends t
 
 
 ## State of the art  
-<Qui andrebbero descritti altri sistemi, ho visto e ne esistono in effetti e fanno cose simili, al netto forse di qualche aggiustamento economico come interessi ecc..>
+Over the last years, it was found that an increased number of cryptocurrency projects focused on building financial primitives for the NFT space. One of them are the lending platforms where users can borrow fungible tokens by collateralizing the loan with their NFT.
+
+The main  platforms are:
+* **PINE**: Its lending protocol allows borrowers to borrow fungible digital tokens from lenders using non-fungible tokens as collateral. Lenders earn yield on tangible digital assets, acquire NFT assets at a discount and segregated pool structure for better market and compliance risk management. Borrowers obtain instant permissionaless loans with no back-and-forth needed with lenders and have flexibility to repay loan early or to extend loan via rollover.
+Every lender sets up their own segregated lending pool giving flexibility to choose the types of collateral they want to lend and set specific terms (such as loan fixed duration and interest rates). In case of default, the ownership of the NFT is transferred to the lender. 
+Pine.loans is a platform for lenders to list the loan offers, allows NFT owners to get loans with the best conditions and guarantees enforceability of the terms of the loans.
+The platform offers a portal where lenders are able to manage their segregated pools, their offers and collateral repossession.
+* **TrustNFT**: It is a platform powered by the MVP, an NFT Evaluation Machine which is powered by AI and big data. The platform uses data sources from the blockchain and establishes trends in the NFT and cryptocurrency markets.
+TrustNFT is a peer-to-peer platform for NFT-collateralized loans that enables borrowers to put up assets for loans and lenders to make offers to lend in return for interest.
+* **Taker**: It is a liquidity protocol which uses NFT assets as the starting point to provide lending services for all kinds of novel crypto assets of the future. It will be the first NFT loan protocol that supports Uniswap V3 LP tokens. It increases the liquidity for NFT assets and improves the efficiency of NFT lending and borrowing services.
+The protocol removes the requirement for oracles by locking price and peer-to-peer quoting. Both borrower and lender obtain incentives in the form of ecosystem tokens as rewards.
+* **Arcade**: It is a Web3 platform that provides a liquid lending market for NFTs. It is an innovative peer to peer lending platform that enables NFT owners to unlock liquidity on single NFT or multiple NFTs on Ethereum. Lenders (holding stablecoins or ERC20 tokens) underwrite loans collateralized by borrowers’ NFTs.
+* **Liquid NFTs**
+* **Fluid NFTs**
+* **JPEG’d**
 
 ## Technical challenges 
 The possibility to apply economics concept to the loan (i.e. interests).
