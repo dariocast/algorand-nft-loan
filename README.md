@@ -29,7 +29,7 @@ The Stateful Smart Contract stores the following information:
 
 The smart contract supports the following operations.
 
-Offer (NFT, borrower_address, loan_threshold, auction_deadline, payback_deadline)
+Offer (NFT, borrower_address, loan_threshold, auction_period, payback_deadline)
 
 B sends the NFT to the smart contract. B establishes a minimum loan threshold (loan_threshold), the number of blocks of the auction validity period (auction_period), and the loan payback deadline (payback_deadline), which is the number of blocks from when AcceptBid is invoked. The smart contract stores B's address (borrower_address) for future ownership transfers.
 
