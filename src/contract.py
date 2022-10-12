@@ -82,7 +82,7 @@ class BorrowMyNFT(Application):
 
     # Add an external method with ABI method signature `hello(string)string`
     @external
-    def health(self, output: abi.String):
+    def health(self, *, output: abi.String):
         # Set output to the result of `Hello, `+name
         return output.set(
             Bytes(

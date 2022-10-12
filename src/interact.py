@@ -1,5 +1,5 @@
 from beaker import sandbox, consts
-from beaker.client import ApplicationClient
+from beaker.client import ApplicationClient, LogicException
 
 from src.contract import BorrowMyNFT
 
@@ -25,15 +25,25 @@ def deploy_and_call_status():
 
     # Fund the contract for minimum balance
     app_client.fund(100 * consts.milli_algo)
-    print(f"RSVP Balance: {client.account_info(app_addr).get('amount')} microAlgos \n")
+    print(f"Contract Balance: {client.account_info(app_addr).get('amount')} microAlgos \n")
 
     # Opt in mandatory for everyone, contract_owner included
     # app_client.opt_in()
     health = app_client.call(app.health)
     print(f"Health: {health.return_value} \n")
 
+    # Call the health method from borrower account
+    app_client_borrower = app_client.prepare(signer=borrower_account.signer)
+    # Try calling without opting in
     try:
-        app_client.close_out()
+        # Get the global state
+        health = app_client_borrower.call(app.health)
+        print(f"Health: {health.return_value} \n")
+    except LogicException as e:
+        print(f"\n{e}\n")
+
+    try:
+        # app_client.close_out()
         app_client.delete()
     except Exception as e:
         print(e)
