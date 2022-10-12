@@ -5,7 +5,7 @@ from algosdk.v2client import algod
 from src.utils.accounts import generate_algorand_keypair
 
 
-def get_algod_client(private_key, my_address):
+def get_algod_client():
     # set the address and token from the environment variables, otherwise use the sandbox values
     algod_address = os.environ.get("ALGOD_ADDRESS","http://localhost:4001")
     algod_token = os.environ.get("ALGOD_TOKEN","aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
