@@ -1,4 +1,4 @@
-from src.assets.nft import create_default_nft
+from src.nft import create_default_nft
 from src.utils.accounts import get_default_algorand_keypair
 from src.utils.client import get_algod_client
 
