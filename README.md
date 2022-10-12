@@ -22,72 +22,71 @@ The Stateful Smart Contract stores the following information:
 	- lender_address (current bidder)
 	- n_Algos (highest bid)
 	- loan_threshold (auction staring amount)
-	- auction_period (number of blocks from the offer creation)
+	- auction_period (number of blocks from the set_offer creation)
 	- payback_deadline (number of blocks from the bid acceptance)
-	- last_interest_update_block (starting block to compute the interest. It stores the block corresponding to the last successful invocation of PayBack)
+	- last_interest_update_block (starting block to compute the interest. It stores the block corresponding to the last successful invocation of pay_back)
 	- debt_left (The current debt. debt_left=debt_left*((1+interset_rate)^(current_block - last_interest_update_block)))
 
 The smart contract supports the following operations.
 
-Offer (NFT, borrower_address, loan_threshold, auction_period, payback_deadline)
+- `set_offer (NFT, borrower_address, loan_threshold, auction_period, payback_deadline)`
 
-B sends the NFT to the smart contract. B establishes a minimum loan threshold (loan_threshold), the number of blocks of the auction validity period (auction_period), and the loan payback deadline (payback_deadline), which is the number of blocks from when AcceptBid is invoked. The smart contract stores B's address (borrower_address) for future ownership transfers.
+B sends the NFT to the smart contract. B establishes a minimum loan threshold (loan_threshold), the number of blocks of the auction validity period (auction_period), and the loan payback deadline (payback_deadline), which is the number of blocks from when accept_bid is invoked. The smart contract stores B's address (borrower_address) for future ownership transfers.
 
+- `place_bid (lender_address, n_Algos)`
 
-Bid (lender_address, n_Algos)
+place_bid is invokable only during the auction validity period. L sends some Algos (n_Algos) to the smart contract. The smart contract stores the lender's address (lender_address). The amount of Algos must be greater than the loan threshold and the current highest bid. The smart contract refunds the previous highest bid and replaces it with the new bid.
 
-Bid is invokable only during the auction validity period. L sends some Algos (n_Algos) to the smart contract. The smart contract stores the lender's address (lender_address). The amount of Algos must be greater than the loan threshold and the current highest bid. The smart contract refunds the previous highest bid and replaces it with the new bid.
+- `accept_bid ()`
 
+accept_bid is invokable only by B. The smart contract forwards n_Algos to B. The smart contract still owns the NFT. cancel_offer and timeout can no longer be invoked.
 
-AcceptBid ()
+- `timeout ()`
 
-AcceptBid is invokable only by B. The smart contract forwards n_Algos to B. The smart contract still owns the NFT. CancelOffer and Timeout can no longer be invoked.
+timeout is invokable only after the auction ends and if accept_bid is not invoked.  
+Anyone can invoke timeout to return the managed assets (NFT, n_Algos) to their original owners. 
 
+- `cancel_offer ()`
 
-Timeout ()
+Only B can invoke cancel_offer, and only if accept_bid is not invoked. The smart contract returns the managed assets (NFT, n_Algos) to their original owners. 
 
-Timeout is invokable only after the auction ends and if AcceptBid is not invoked.  
-Anyone can invoke Timeout to return the managed assets (NFT, n_Algos) to their original owners. 
+- `pay_back (m_Algos, current_block)`
 
+B gives some Algos (m_Algos) to the smart contract. pay_back updates the current debt by summing the accumulated compound interest. m_Algos must repay at least the accumulated compound interest. If m_Algos exceeds B's current debt, the smart contract returns the exceeding Algos to B. The smart contract subtracts m_Algos from B's debt. The smart contract keeps the portion of the m_Algos entitled to the smart contract creators and forwards the remaining part to L. If B's debt goes to 0, the smart contract gives the NFT back to B. pay_back can be invoked after the payback deadline expires but not after LoanExpired is invoked.
 
-CancelOffer ()
+- `loan_expired ()`
 
-Only B can invoke CancelOffer, and only if AcceptBid is not invoked. The smart contract returns the managed assets (NFT, n_Algos) to their original owners. 
+LoanExpired can be invoked only by L after the payback deadline expires. L receives the NFT from the smart contract. pay_back cannot be invoked anymore.
 
+- `pay_me (creator_address)`
 
-PayBack (m_Algos, current_block)
-
-B gives some Algos (m_Algos) to the smart contract. PayBack updates the current debt by summing the accumulated compound interest. m_Algos must repay at least the accumulated compound interest. If m_Algos exceeds B's current debt, the smart contract returns the exceeding Algos to B. The smart contract subtracts m_Algos from B's debt. The smart contract keeps the portion of the m_Algos entitled to the smart contract creators and forwards the remaining part to L. If B's debt goes to 0, the smart contract gives the NFT back to B. PayBack can be invoked after the payback deadline expires but not after LoanExpired is invoked.
-
-
-LoanExpired ()
-
-LoanExpired can be invoked only by L after the payback deadline expires. L receives the NFT from the smart contract. PayBack cannot be invoked anymore.
-
-
-PayMe (creator_address)
-
-PayMe can only be invoked by the creator(s) of the smart contract. PayMe sends the currently collected fees to the creator's address.
-
-
+pay_me can only be invoked by the creator(s) of the smart contract. pay_me sends the currently collected fees to the creator's address.
 
 
 ## State of the art  
-Over the last years, it was found that an increased number of cryptocurrency projects focused on building financial primitives for the NFT space. One of them are the lending platforms where users can borrow fungible tokens by collateralizing the loan with their NFT.
-
-The main  platforms are:
-* **PINE**: Its lending protocol allows borrowers to borrow fungible digital tokens from lenders using non-fungible tokens as collateral. Lenders earn yield on tangible digital assets, acquire NFT assets at a discount and segregated pool structure for better market and compliance risk management. Borrowers obtain instant permissionaless loans with no back-and-forth needed with lenders and have flexibility to repay loan early or to extend loan via rollover.
-Every lender sets up their own segregated lending pool giving flexibility to choose the types of collateral they want to lend and set specific terms (such as loan fixed duration and interest rates). In case of default, the ownership of the NFT is transferred to the lender. 
-Pine.loans is a platform for lenders to list the loan offers, allows NFT owners to get loans with the best conditions and guarantees enforceability of the terms of the loans.
-The platform offers a portal where lenders are able to manage their segregated pools, their offers and collateral repossession.
-* **TrustNFT**: It is a platform powered by the MVP, an NFT Evaluation Machine which is powered by AI and big data. The platform uses data sources from the blockchain and establishes trends in the NFT and cryptocurrency markets.
-TrustNFT is a peer-to-peer platform for NFT-collateralized loans that enables borrowers to put up assets for loans and lenders to make offers to lend in return for interest.
-* **Taker**: It is a liquidity protocol which uses NFT assets as the starting point to provide lending services for all kinds of novel crypto assets of the future. It will be the first NFT loan protocol that supports Uniswap V3 LP tokens. It increases the liquidity for NFT assets and improves the efficiency of NFT lending and borrowing services.
-The protocol removes the requirement for oracles by locking price and peer-to-peer quoting. Both borrower and lender obtain incentives in the form of ecosystem tokens as rewards.
-* **Arcade**: It is a Web3 platform that provides a liquid lending market for NFTs. It is an innovative peer to peer lending platform that enables NFT owners to unlock liquidity on single NFT or multiple NFTs on Ethereum. Lenders (holding stablecoins or ERC20 tokens) underwrite loans collateralized by borrowers’ NFTs.
-* **Liquid NFTs**
-* **Fluid NFTs**
-* **JPEG’d**
+According to [DappRadar](https://dappradar.com/blog/), the third quarter of 2022 saw $3.4 billion in NFT sales. From the current trend, it is evident that the digital asset market will be as big as or even bigger than the physical asset market in the long run. In relation to this, over the last years, it was found that an increased number of cryptocurrency projects focused on building financial primitives for the NFT space.
+One of them are the lending platforms where users can borrow fungible tokens by collateralizing the loan with their NFT. 
+NFT lending platforms allow users to borrow liquid assets by using their NFTs as collateral. 
+It is possible to distinguish three types of lending pool approaches: peer to peer, peer to pool, and collateralized debt position (CDP).
+Starting from them, we are going to illustrate their mechanisms and provide examples of some platforms.
+1. **Peer to peer**: This is the main scenario that enables individuals to borrow and lend money directly from one to another. These platforms have similar behaviours.
+One of these is that the NFTs are locked as collateral in contract, then the lender provides a loan to the borrower within a specific time frame. 
+Another takes into account the lending process which involves an auction on the loan’s interest rate. In general lenders who provide the lowest interest rates win the bids.
+The main benefit of the P2P lending is that it is perfect for covering NFTs risks. This kind of lending is characterized by combinations of high interest rates and moderate loan-to-value ratios.
+Platforms that use this approach are:
+	* [**NFTfi**](https://www.nftfi.com/), (2022): It is a peer-to-peer interaction among borrowers and lenders. Borrowers use their NFTs as collateral to get liquidity by the lenders that give back wETH or DAI. The system enables changes to loan settings (market conditions, life circumstances, lending/borrowing strategies, etc.). In addition, a loan can be renegotiated by the borrower or the lender. It can be triggered any time during an active loan or after the loan has expired (before the lender forecloses the loan).
+	* [**TrustNFT‌**](https://info-87.gitbook.io/trustnft-light-paper/), (2021): The main characteristic of the platform  is the accurate evaluation provided by an NFT Evaluation Machine which is powered by AI and big data. The platform uses data sources from the blockchain and establishes trends in the NFT and cryptocurrency markets. It is a peer-to-peer platform for NFT-collateralized loans that enables borrowers to put up assets for loans and lenders to make offers to lend in return for interest. Once the borrower picks her NFT,  the platform evaluates the maximum borrow limit for the asset(s). Following this, there is an agreement phase and then the asset is locked in a TrustNFT smart contract until the loan is completely repaid.
+	* [**Pawnfi‌**](https://pawnfi.com/), (2020): The Pawnfi protocol proposes the concept of Non-Standard Assets (NSA) that can be fungible and non-fungible (such as NFTs, LP Tokens, Fungible tokens with liquidity, tokenized insurance, bonds, bills, derivatives, long-tail assets). Owners of these assets can draw loans against or lease their assets to gain instant usage from their illiquid tokens by placing them on Pawnfi. The system has three modes: pawn (collateral for loans), lease (lending the assets to others for passive income) and sale (listing on secondary markets for the highest bid).
+	* [**Yawww‌**](https://yawww.gitbook.io/whitepaper/), (2021): It is the first Solana's P2P automated escrow & trading service for NFTs and Solana's P2P loans marketplace. According to its protocol, every owner of Solana NFTs (borrowers) can create a loan request on Yawww using her NFT as collateral and setting loan amount, interest rate, and duration. Anybody can fund the loan with a single click, or they want to negotiate the terms.
+	* [**Arcade‌**](https://docs.arcade.xyz/docs), (2021): The system allows users to wrap multiple NFTs into one wrapped NFT that can be collateralized as a single asset. NFT price movements depend on the floor price and the value of ETH. If the value of the NFTs is lower than the borrowed coins, lenders might be at the loss, and not be able to sell the NFTs at the market price in case of late payment.
+2. **Peel to pool/peer-to-protocol**: This kind of system takes into account NFTs lending borrowing liquidity directly from the protocol. The main actors in this scenario are the liquidity providers and the borrowers. The former deposits into the protocol pools while the latter get liquidity after collateralizing their NFTs which are locked in the protocol’s smart digital vaults.
+Platforms that use this approach are:
+	* [**NFTuloan**](https://www.nftuloan.com/index.php), (2021): It is a liquidity pool provider for digital arts, domain names, collectibles, gaming cards, trading cards, virtual lands, utilities. Once the user has added her crypto wallet to the platform, she can apply for loans using her NFTs as collateral. Each loan has a fixed payback duration of 1 hour to 30 days, and the flexible interest rate which depends on the NFT. value. Moreover, NFTuloan provides an instant NFT estimation feature in order to guarantee accurate, transparent, and fair valuations of the token.
+	* [**BendDAO**](https://docs.benddao.xyz/portal/), (2021):  It is an NFT liquidity protocol that supports instant NFT-backed loans, Collateral Listing, and NFT Down Payment. In BendDAO, NFT holders can borrow ETH through the lending pool using NFTs as collateral instantly, while depositors provide ETH liquidity to earn interest. To minimize the losses caused by the market fluctuations, the borrower has a 24-hour liquidation protection period to pay back the loan (including interests). All the collateral are directly listed on the DBendDAO. Moreover, NFT holders can choose to get up to 40% of the floor value of the listing before it even sells. The instant liquidity is provided by the instant NFT-backed loan. The balance after deducting debt with interests will be transferred to the borrower after the deal. 
+	* [**PINE**](https://docs.pine.loans/introduction/overview), (2022): Its lending protocol allows borrowers to borrow fungible digital tokens from lenders using non-fungible tokens as collateral. Lenders earn yield on tangible digital assets, acquire NFT assets at a discount and segregated pool structure for better market and compliance risk management. Borrowers obtain instant permissionaless loans with no back-and-forth needed with lenders and have flexibility to repay loan early or to extend loan via rollover. Every lender sets up their own segregated lending pool giving flexibility to choose the types of collateral they want to lend and set specific terms (such as loan fixed duration and interest rates). In case of default, the ownership of the NFT is transferred to the lender. Pine.loans is a platform for lenders to list the loan offers, allows NFT owners to get loans with the best conditions and guarantees enforceability of the terms of the loans.The platform offers a portal where lenders are able to manage their segregated pools, their offers and collateral repossession.
+3. **Collateralized Debt Position**: It is a new model for the NFT collateralized currency market which lets borrowers take out the stablecoin DAI when they collateralize ETH. It is created when collateral is locked into MakerDAO’s smart contract and the decentralized stablecoin DAI is generated. The value of the collateral placed in the CDP exceeds 150% of the generated DAI value. In undercollateralized scenario, the assets in the smart contract are sold and the funds are used to repay the generated DAI, a 13% liquidation penalty, and the stability fees applicable at the time of payment. DAI, an Ethereum-based ERC-20-compatible token, are a decentralized loan and  is backed by the collateral’s value. If the borrower wants to unlock the collateral, she has to repay the DAI (and other stability fees). 
+A platforms that uses this approach is:
+	* [**JPEG’d**](https://docs.jpegd.io/about-the-lending-protocol/introduction), (2022): It is a decentralized lending protocol on the Ethereum blockchain that enables NFT holders to open CDPs using their NFTs as collateral. Users mint PUSd (native stablecoin of the protocol) or pETH (native Ethereum derivative of the protocol) allowing them to obtain leverage on their NFTs. JPEG'd uses a peer to protocol lending mechanism and borrowers can set up several options during the lending step. PUSd  gets minted against every borrow position at a fixed borrow rate (2%) and burned upon closing of the position. All debt positions allow 32% of the collateral value to be drawn and liquidation occurs whether the debt/collateral ratio is 33% or higher.
 
 ## Technical challenges 
 The possibility to apply economics concept to the loan (i.e. interests).
