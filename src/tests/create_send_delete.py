@@ -1,3 +1,5 @@
+import json
+
 from algosdk.future import transaction
 from algosdk.atomic_transaction_composer import TransactionWithSigner, AtomicTransactionComposer
 from beaker import sandbox, consts
@@ -18,7 +20,11 @@ lender_account = accounts.pop()
 app = BorrowMyNFT()
 
 # Create an Application client for event creator containing both an algod client and the app
-app_client = ApplicationClient(client, app, signer=contract_owner_account.signer)
+app_client = ApplicationClient(
+    client,
+    app,
+    signer=contract_owner_account.signer
+)
 
 
 def create_send_delete():
@@ -37,61 +43,80 @@ def create_send_delete():
 
     # Guest 1
     print("### BORROWER SCENARIO ###\n")
-    app_client_borrower = app_client.prepare(signer=borrower_account.signer)
+    app_client_borrower = app_client.prepare(
+        signer=borrower_account.signer
+    )
 
     print("Creating NFT")
     asset_id = create_default_nft(sandbox.get_algod_client(), borrower_account.private_key, borrower_account.address, "G3 NFT@arc3", "G3", nft_metadata_github_url)
     print("Created NFT with asset ID: {}".format(asset_id))
+
+    #  Providing nft info and payment to allow contract opt in
+    print("Send nft info and payment to allow contract opt in")
+    sp = client.suggested_params()
+    payment_txn = TransactionWithSigner(
+        txn=transaction.PaymentTxn(
+            borrower_account.address,
+            sp,
+            app_addr,
+            100*consts.milli_algo
+        ),
+        signer=borrower_account.signer,
+    )
+    sp.flat_fee = True
+    sp.fee = 2000
+    app_client_borrower.call(
+        app.provide_access_to_nft,
+        suggested_params=sp,
+        nft=asset_id,
+        payment=payment_txn,
+    )
+    print("Provided access to NFT\n")
+
+    # Read state from owner account
+    print("Reading state from owner account")
+    state = app_client.call(app.read_state)
+    print(f"State: {state.return_value} \n")
+
+    # Set offer
+    print("Setting offer")
+    sp = client.suggested_params()
+    asset_xfer_txn = TransactionWithSigner(
+        txn=transaction.AssetTransferTxn(
+            sender=borrower_account.address,
+            receiver=app_addr,
+            sp=sp,
+            index=asset_id,
+            amt=1,
+        ),
+        signer=borrower_account.signer,
+    )
+    app_client_borrower.call(
+        app.set_offer,
+        suggested_params=sp,
+        asset_xfer=asset_xfer_txn,
+        loan_threshold=1000,
+        auction_period=100,
+        payback_deadline=100,
+    )
+    print("Offer set\n")
+
+    # Read state from owner account
+    print("Getting whole state from owner account")
+    state = app_client.get_application_state()
+    print(f"State: {json.dumps(state, indent=4)} \n")
+
+    # Delete contract
+    print("Deleting contract")
+    # at this time delete fails because state is never 0 again
     try:
-        print("Preparing 3 transactions")
-        atc = AtomicTransactionComposer()
-        sp = client.suggested_params()
-        sp.flat_fee = True
-        sp.fee = 2000
-        app_client_borrower.add_method_call(
-            atc=atc,
-            method=app.provide_access_to_nft,
-            suggested_params=sp,
-            nft_id=asset_id
-        )
-        sp = client.suggested_params()
-        asset_xfer_txn = TransactionWithSigner(
-                txn=transaction.AssetTransferTxn(
-                    sender=borrower_account.address,
-                    receiver=app_addr,
-                    amt=1,
-                    index=asset_id,
-                    sp=sp
-                ),
-                signer=borrower_account.signer
-            )
-        # atc.add_transaction(
-        #     txn_and_signer=asset_xfer_txn
-        # )
-        app_client_borrower.add_method_call(
-            atc=atc,
-            method=app.set_offer,
-            suggested_params=sp,
-            asset_xfer=asset_xfer_txn,
-            loan_threshold=2,
-            auction_period=sp.first+17280,
-            payback_deadline=sp.first+17280*2
-        )
-
-        print("Executing 3 transactions")
-        results = atc.execute(client, wait_rounds=2)
-
-        # wait for confirmation
-        print("TXID: ", results.tx_ids[0])
-        print("Result confirmed in round: {}".format(results.confirmed_round))
-    except LogicException as e:
-        print(e)
-
-    try:
-        # app_client.close_out()
         app_client.delete()
-    except Exception as e:
-        print(e)
+        print("Contract deleted")
+    except LogicException as e:
+        print(f"Logic Exception: {e}")
+
+
+    print("### END ###\n")
 
 
 if __name__ == "__main__":

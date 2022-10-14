@@ -148,12 +148,13 @@ class BorrowMyNFT(Application):
     # To be called from borrower to trigger the NFT optin to the contract
     # this must be in a group of 3 transactions: [app_call, asset_xfer, app_call]
     @external
-    def provide_access_to_nft(self, nft: abi.Asset):
+    def provide_access_to_nft(self, nft: abi.Asset, payment: abi.PaymentTransaction):
         return Seq(
             Assert(
-                self.state == Int(0),
-                Global.group_size() == Int(3),
+                Global.group_size() == Int(2),
                 Txn.fee() >= self.FEE * Int(2),
+                payment.get().receiver() == self.address,
+                payment.get().amount() >= self.MIN_BAL,
             ),
             InnerTxnBuilder.Execute(
                 {
@@ -164,8 +165,8 @@ class BorrowMyNFT(Application):
                     TxnField.asset_amount: Int(0),
                 }
             ),
+            self.initialize_account_state(),
             self.nft_id.set(nft.asset_id()),
-            self.state.set(Int(1))
         )
 
     # 2 transactions are checked:
@@ -179,16 +180,15 @@ class BorrowMyNFT(Application):
             auction_period: abi.Uint64,
             payback_deadline: abi.Uint64
     ):
-        Log(Concat(Bytes("Asset xfer sender: "), asset_xfer.get().asset_sender()))
-        Log(Concat(Bytes("Txn sender: "), Txn.sender()))
         return Seq(
             Assert(
-                Global.group_size() == Int(3),
+                Global.group_size() == Int(2),
                 # check asset transfer is correct
                 asset_xfer.get().asset_receiver() == self.address,
                 asset_xfer.get().xfer_asset() == self.nft_id.get(),
                 asset_xfer.get().asset_amount() == Int(1),
-                asset_xfer.get().asset_sender() == Txn.sender(),
+                # TODO capire perché il seguente check fallisce, ora lascio commentato
+                # asset_xfer.get().asset_sender() == Txn.sender(),
                 self.state.get() == Int(0),
                 # TODO following conditions to be defined
                 # self.loan_threshold.get() > Int(0),
@@ -411,7 +411,7 @@ class BorrowMyNFT(Application):
 
     @external(read_only=True)
     def read_state(self, *, output: abi.Uint64):
-        """Read amount of RSVP to the event. Only callable by Creator."""
+        """Read current state."""
         return output.set(self.state)
 
     @external

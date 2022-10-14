@@ -1,5 +1,5 @@
 #pragma version 7
-intcblock 0 1 2 4 1000000
+intcblock 0 1 2 4 100000 1000000
 bytecblock 0x7374617465 0x646562745f6c656674 0x686967686573745f626964 0x6c656e6465725f61646472657373 0x626f72726f7765725f61646472657373 0x 0x6e66745f6964 0x6c6173745f696e7465726573745f7570646174655f626c6f636b 0x7061796261636b5f646561646c696e65 0x61756374696f6e5f706572696f64 0x6c6f616e5f7468726573686f6c64 0x151f7c75
 txn NumAppArgs
 intc_0 // 0
@@ -42,7 +42,7 @@ pushbytes 0xd65c5c6f // "place_bid(pay)void"
 ==
 bnz main_l21
 txna ApplicationArgs 0
-pushbytes 0xa2a38a52 // "provide_access_to_nft(uint64)void"
+pushbytes 0x0b585b7b // "provide_access_to_nft(asset,pay)void"
 ==
 bnz main_l20
 txna ApplicationArgs 0
@@ -85,26 +85,26 @@ intc_0 // 0
 assert
 txna ApplicationArgs 1
 btoi
-store 9
+store 11
 txna ApplicationArgs 2
 btoi
-store 10
+store 12
 txna ApplicationArgs 3
 btoi
-store 11
+store 13
 txn GroupIndex
 intc_1 // 1
 -
-store 8
-load 8
+store 10
+load 10
 gtxns TypeEnum
 intc_3 // axfer
 ==
 assert
-load 8
-load 9
 load 10
 load 11
+load 12
+load 13
 callsub setoffer_16
 intc_1 // 1
 return
@@ -130,9 +130,9 @@ intc_0 // 0
 &&
 assert
 callsub readstate_14
-store 7
+store 9
 bytec 11 // 0x151f7c75
-load 7
+load 9
 itob
 concat
 log
@@ -148,7 +148,20 @@ intc_0 // 0
 &&
 assert
 txna ApplicationArgs 1
-btoi
+intc_0 // 0
+getbyte
+store 7
+txn GroupIndex
+intc_1 // 1
+-
+store 8
+load 8
+gtxns TypeEnum
+intc_1 // pay
+==
+assert
+load 7
+load 8
 callsub provideaccesstonft_13
 intc_1 // 1
 return
@@ -371,7 +384,7 @@ intc_0 // 0
 assert
 global CurrentApplicationAddress
 balance
-pushint 100000 // 100000
+intc 4 // 100000
 global MinTxnFee
 +
 >
@@ -658,7 +671,7 @@ retsub
 
 // pay_back
 payback_9:
-store 12
+store 14
 global GroupSize
 intc_2 // 2
 ==
@@ -674,12 +687,12 @@ app_global_get
 intc_2 // 2
 ==
 assert
-load 12
+load 14
 gtxns Receiver
 global CurrentApplicationAddress
 ==
 assert
-load 12
+load 14
 gtxns Amount
 bytec_1 // "debt_left"
 app_global_get
@@ -688,7 +701,7 @@ bytec 7 // "last_interest_update_block"
 app_global_get
 -
 *
-intc 4 // 1000000
+intc 5 // 1000000
 /
 >=
 assert
@@ -702,20 +715,20 @@ bytec 7 // "last_interest_update_block"
 app_global_get
 -
 *
-intc 4 // 1000000
+intc 5 // 1000000
 /
 +
 app_global_put
 bytec 7 // "last_interest_update_block"
 global Round
 app_global_put
-load 12
+load 14
 gtxns Amount
 bytec_1 // "debt_left"
 app_global_get
 >
 bnz payback_9_l4
-load 12
+load 14
 gtxns Amount
 bytec_1 // "debt_left"
 app_global_get
@@ -724,7 +737,7 @@ bnz payback_9_l3
 itxn_begin
 intc_1 // pay
 itxn_field TypeEnum
-load 12
+load 14
 gtxns Amount
 itxn_field Amount
 bytec_3 // "lender_address"
@@ -736,7 +749,7 @@ itxn_submit
 bytec_1 // "debt_left"
 bytec_1 // "debt_left"
 app_global_get
-load 12
+load 14
 gtxns Amount
 -
 app_global_put
@@ -802,7 +815,7 @@ payback_9_l4:
 itxn_begin
 intc_1 // pay
 itxn_field TypeEnum
-load 12
+load 14
 gtxns Amount
 bytec_1 // "debt_left"
 app_global_get
@@ -946,7 +959,7 @@ retsub
 
 // place_bid
 placebid_12:
-store 13
+store 15
 global GroupSize
 intc_2 // 2
 ==
@@ -962,24 +975,24 @@ app_global_get
 intc_1 // 1
 ==
 assert
-load 13
+load 15
 gtxns Receiver
 global CurrentApplicationAddress
 ==
 assert
-load 13
+load 15
 gtxns Amount
 bytec_2 // "highest_bid"
 app_global_get
 >
 assert
-load 13
+load 15
 gtxns Amount
 bytec 10 // "loan_threshold"
 app_global_get
 >
 assert
-load 13
+load 15
 gtxns Amount
 pushint 200000000000 // 200000000000
 <=
@@ -1008,25 +1021,21 @@ itxn_field Fee
 itxn_submit
 placebid_12_l2:
 bytec_2 // "highest_bid"
-load 13
+load 15
 gtxns Amount
 app_global_put
 bytec_3 // "lender_address"
-load 13
+load 15
 gtxns Sender
 app_global_put
 retsub
 
 // provide_access_to_nft
 provideaccesstonft_13:
-store 14
-bytec_0 // "state"
-app_global_get
-intc_0 // 0
-==
-assert
+store 17
+store 16
 global GroupSize
-pushint 3 // 3
+intc_2 // 2
 ==
 assert
 txn Fee
@@ -1035,10 +1044,21 @@ intc_2 // 2
 *
 >=
 assert
+load 17
+gtxns Receiver
+global CurrentApplicationAddress
+==
+assert
+load 17
+gtxns Amount
+intc 4 // 100000
+>=
+assert
 itxn_begin
 intc_3 // axfer
 itxn_field TypeEnum
-load 14
+load 16
+txnas Assets
 itxn_field XferAsset
 global CurrentApplicationAddress
 itxn_field AssetReceiver
@@ -1048,10 +1068,8 @@ intc_0 // 0
 itxn_field AssetAmount
 itxn_submit
 bytec 6 // "nft_id"
-load 14
-app_global_put
-bytec_0 // "state"
-intc_1 // 1
+load 16
+txnas Assets
 app_global_put
 retsub
 
@@ -1097,33 +1115,28 @@ retsub
 
 // set_offer
 setoffer_16:
+store 21
+store 20
+store 19
 store 18
-store 17
-store 16
-store 15
 global GroupSize
-pushint 3 // 3
+intc_2 // 2
 ==
 assert
-load 15
+load 18
 gtxns AssetReceiver
 global CurrentApplicationAddress
 ==
 assert
-load 15
+load 18
 gtxns XferAsset
 bytec 6 // "nft_id"
 app_global_get
 ==
 assert
-load 15
+load 18
 gtxns AssetAmount
 intc_1 // 1
-==
-assert
-load 15
-gtxns AssetSender
-txn Sender
 ==
 assert
 bytec_0 // "state"
@@ -1135,15 +1148,15 @@ bytec_0 // "state"
 intc_1 // 1
 app_global_put
 bytec 10 // "loan_threshold"
-load 16
+load 19
 app_global_put
 bytec 9 // "auction_period"
 global Round
-load 17
+load 20
 +
 app_global_put
 bytec 8 // "payback_deadline"
-load 18
+load 21
 app_global_put
 bytec 4 // "borrower_address"
 txn Sender
