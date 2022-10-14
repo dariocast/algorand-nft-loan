@@ -148,7 +148,7 @@ class BorrowMyNFT(Application):
     # To be called from borrower to trigger the NFT optin to the contract
     # this must be in a group of 3 transactions: [app_call, asset_xfer, app_call]
     @external
-    def provide_access_to_nft(self, nft_id: abi.Uint64):
+    def provide_access_to_nft(self, nft: abi.Asset):
         return Seq(
             Assert(
                 self.state == Int(0),
@@ -158,13 +158,13 @@ class BorrowMyNFT(Application):
             InnerTxnBuilder.Execute(
                 {
                     TxnField.type_enum: TxnType.AssetTransfer,
-                    TxnField.xfer_asset: nft_id.get(),
+                    TxnField.xfer_asset: nft.asset_id(),
                     TxnField.asset_receiver: self.address,
                     TxnField.fee: Int(0),
                     TxnField.asset_amount: Int(0),
                 }
             ),
-            self.nft_id.set(nft_id.get()),
+            self.nft_id.set(nft.asset_id()),
             self.state.set(Int(1))
         )
 
@@ -179,6 +179,8 @@ class BorrowMyNFT(Application):
             auction_period: abi.Uint64,
             payback_deadline: abi.Uint64
     ):
+        Log(Concat(Bytes("Asset xfer sender: "), asset_xfer.get().asset_sender()))
+        Log(Concat(Bytes("Txn sender: "), Txn.sender()))
         return Seq(
             Assert(
                 Global.group_size() == Int(3),
