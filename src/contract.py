@@ -49,6 +49,7 @@ class BorrowMyNFT(Application):
     # 0=initial state, 1=set_offer invoked, 2 = acceptBid invoked,
     state: Final[ApplicationStateValue] = ApplicationStateValue(
         stack_type=TealType.uint64,
+        default=Int(0),
         descr="The current contract state",
     )
 
@@ -56,7 +57,7 @@ class BorrowMyNFT(Application):
     MIN_BAL = Int(100000)
 
     # Algorand minimum txn fee
-    FEE = Int(1000)
+    FEE = Global.min_txn_fee()
 
     @create
     def create(self):
