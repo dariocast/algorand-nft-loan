@@ -1,0 +1,850 @@
+#pragma version 7
+intcblock 0 1 1000 100000
+bytecblock 0x7374617465 0x686967686573745f626964 0x626f72726f7765725f61646472657373 0x 0x6e66745f6964 0x6c656e6465725f61646472657373 0x7061796261636b5f646561646c696e65 0x61756374696f6e5f706572696f64 0x646562745f6c656674 0x6c6173745f696e7465726573745f7570646174655f626c6f636b 0x6c6f616e5f7468726573686f6c64 0x151f7c75
+txn NumAppArgs
+intc_0 // 0
+==
+bnz main_l26
+txna ApplicationArgs 0
+pushbytes 0xaa409b41 // "accept_bid()void"
+==
+bnz main_l25
+txna ApplicationArgs 0
+pushbytes 0xc982a6f4 // "cancel_offer()void"
+==
+bnz main_l24
+txna ApplicationArgs 0
+pushbytes 0x0f52f82b // "health()string"
+==
+bnz main_l23
+txna ApplicationArgs 0
+pushbytes 0x02bece11 // "hello(string)string"
+==
+bnz main_l22
+txna ApplicationArgs 0
+pushbytes 0x8934014d // "loan_expired()void"
+==
+bnz main_l21
+txna ApplicationArgs 0
+pushbytes 0x660082d1 // "pay_me()void"
+==
+bnz main_l20
+txna ApplicationArgs 0
+pushbytes 0x9d13bd2f // "pay_me_internal()void"
+==
+bnz main_l19
+txna ApplicationArgs 0
+pushbytes 0xa2a38a52 // "provide_access_to_nft(uint64)void"
+==
+bnz main_l18
+txna ApplicationArgs 0
+pushbytes 0xcad70f1f // "read_state()uint64"
+==
+bnz main_l17
+txna ApplicationArgs 0
+pushbytes 0x31ea33b5 // "reset_state()void"
+==
+bnz main_l16
+txna ApplicationArgs 0
+pushbytes 0xed5adede // "set_offer(axfer,uint64,uint64,uint64)void"
+==
+bnz main_l15
+txna ApplicationArgs 0
+pushbytes 0xa71c61b0 // "timeout()void"
+==
+bnz main_l14
+err
+main_l14:
+txn OnCompletion
+intc_0 // NoOp
+==
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+callsub timeout_15
+intc_1 // 1
+return
+main_l15:
+txn OnCompletion
+intc_0 // NoOp
+==
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+txna ApplicationArgs 1
+btoi
+store 7
+txna ApplicationArgs 2
+btoi
+store 8
+txna ApplicationArgs 3
+btoi
+store 9
+txn GroupIndex
+intc_1 // 1
+-
+store 6
+load 6
+gtxns TypeEnum
+pushint 4 // axfer
+==
+assert
+load 6
+load 7
+load 8
+load 9
+callsub setoffer_14
+intc_1 // 1
+return
+main_l16:
+txn OnCompletion
+intc_0 // NoOp
+==
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+callsub resetstate_13
+intc_1 // 1
+return
+main_l17:
+txn OnCompletion
+intc_0 // NoOp
+==
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+callsub readstate_12
+store 5
+bytec 11 // 0x151f7c75
+load 5
+itob
+concat
+log
+intc_1 // 1
+return
+main_l18:
+txn OnCompletion
+intc_0 // NoOp
+==
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+txna ApplicationArgs 1
+btoi
+callsub provideaccesstonft_11
+intc_1 // 1
+return
+main_l19:
+txn OnCompletion
+intc_0 // NoOp
+==
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+callsub paymeinternal_10
+intc_1 // 1
+return
+main_l20:
+txn OnCompletion
+intc_0 // NoOp
+==
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+callsub payme_9
+intc_1 // 1
+return
+main_l21:
+txn OnCompletion
+intc_0 // NoOp
+==
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+callsub loanexpired_8
+intc_1 // 1
+return
+main_l22:
+txn OnCompletion
+intc_0 // NoOp
+==
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+txna ApplicationArgs 1
+callsub hello_7
+store 2
+bytec 11 // 0x151f7c75
+load 2
+concat
+log
+intc_1 // 1
+return
+main_l23:
+txn OnCompletion
+intc_0 // NoOp
+==
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+callsub health_6
+store 0
+bytec 11 // 0x151f7c75
+load 0
+concat
+log
+intc_1 // 1
+return
+main_l24:
+txn OnCompletion
+intc_0 // NoOp
+==
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+callsub canceloffer_5
+intc_1 // 1
+return
+main_l25:
+txn OnCompletion
+intc_0 // NoOp
+==
+txn ApplicationID
+intc_0 // 0
+!=
+&&
+assert
+callsub acceptbid_4
+intc_1 // 1
+return
+main_l26:
+txn OnCompletion
+intc_0 // NoOp
+==
+bnz main_l30
+txn OnCompletion
+pushint 5 // DeleteApplication
+==
+bnz main_l29
+err
+main_l29:
+txn ApplicationID
+intc_0 // 0
+!=
+assert
+callsub delete_2
+intc_1 // 1
+return
+main_l30:
+txn ApplicationID
+intc_0 // 0
+==
+assert
+callsub create_0
+intc_1 // 1
+return
+
+// create
+create_0:
+bytec 7 // "auction_period"
+pushint 17280 // 17280
+app_global_put
+bytec_2 // "borrower_address"
+bytec_3 // ""
+app_global_put
+bytec 8 // "debt_left"
+intc_0 // 0
+app_global_put
+bytec_1 // "highest_bid"
+intc_0 // 0
+app_global_put
+bytec 9 // "last_interest_update_block"
+intc_0 // 0
+app_global_put
+bytec 5 // "lender_address"
+bytec_3 // ""
+app_global_put
+bytec 10 // "loan_threshold"
+intc_0 // 0
+app_global_put
+bytec 4 // "nft_id"
+intc_0 // 0
+app_global_put
+bytec 6 // "payback_deadline"
+intc_0 // 0
+app_global_put
+bytec_0 // "state"
+intc_0 // 0
+app_global_put
+retsub
+
+// auth_only
+authonly_1:
+global CreatorAddress
+==
+retsub
+
+// delete
+delete_2:
+txn Sender
+callsub authonly_1
+// unauthorized
+assert
+bytec_0 // "state"
+app_global_get
+intc_0 // 0
+==
+assert
+global CurrentApplicationAddress
+balance
+intc_3 // 100000
+intc_2 // 1000
++
+>
+bz delete_2_l2
+global CurrentApplicationAddress
+balance
+intc_3 // 100000
+intc_2 // 1000
++
+>
+assert
+itxn_begin
+intc_1 // pay
+itxn_field TypeEnum
+txn Sender
+itxn_field Receiver
+global CurrentApplicationAddress
+balance
+intc_3 // 100000
+intc_2 // 1000
++
+-
+itxn_field Amount
+itxn_submit
+delete_2_l2:
+retsub
+
+// auth_only
+authonly_3:
+global CreatorAddress
+==
+retsub
+
+// accept_bid
+acceptbid_4:
+txn Fee
+global MinTxnFee
+pushint 2 // 2
+*
+>=
+assert
+txn Sender
+bytec_2 // "borrower_address"
+app_global_get
+==
+assert
+bytec_1 // "highest_bid"
+app_global_get
+intc_0 // 0
+>
+assert
+bytec_0 // "state"
+pushint 2 // 2
+app_global_put
+bytec 8 // "debt_left"
+bytec_1 // "highest_bid"
+app_global_get
+app_global_put
+bytec 9 // "last_interest_update_block"
+global Round
+app_global_put
+bytec 6 // "payback_deadline"
+global Round
+bytec 6 // "payback_deadline"
+app_global_get
++
+app_global_put
+itxn_begin
+intc_1 // pay
+itxn_field TypeEnum
+bytec_1 // "highest_bid"
+app_global_get
+itxn_field Amount
+bytec_2 // "borrower_address"
+app_global_get
+itxn_field Receiver
+intc_0 // 0
+itxn_field Fee
+itxn_submit
+retsub
+
+// cancel_offer
+canceloffer_5:
+txn Sender
+bytec_2 // "borrower_address"
+app_global_get
+==
+assert
+txn Fee
+global MinTxnFee
+pushint 3 // 3
+*
+>=
+assert
+bytec_0 // "state"
+app_global_get
+intc_1 // 1
+==
+assert
+itxn_begin
+pushint 4 // axfer
+itxn_field TypeEnum
+bytec 4 // "nft_id"
+app_global_get
+itxn_field XferAsset
+intc_1 // 1
+itxn_field AssetAmount
+bytec_2 // "borrower_address"
+app_global_get
+itxn_field AssetReceiver
+intc_0 // 0
+itxn_field Fee
+bytec_1 // "highest_bid"
+app_global_get
+intc_0 // 0
+>
+bz canceloffer_5_l2
+itxn_next
+intc_1 // pay
+itxn_field TypeEnum
+bytec_1 // "highest_bid"
+app_global_get
+itxn_field Amount
+bytec 5 // "lender_address"
+app_global_get
+itxn_field Receiver
+intc_0 // 0
+itxn_field Fee
+canceloffer_5_l2:
+itxn_submit
+bytec_0 // "state"
+intc_0 // 0
+app_global_put
+bytec 8 // "debt_left"
+intc_0 // 0
+app_global_put
+bytec 9 // "last_interest_update_block"
+intc_0 // 0
+app_global_put
+bytec 6 // "payback_deadline"
+intc_0 // 0
+app_global_put
+bytec 7 // "auction_period"
+intc_0 // 0
+app_global_put
+bytec 10 // "loan_threshold"
+intc_0 // 0
+app_global_put
+bytec_1 // "highest_bid"
+intc_0 // 0
+app_global_put
+bytec 5 // "lender_address"
+bytec_3 // ""
+app_global_put
+bytec_2 // "borrower_address"
+bytec_3 // ""
+app_global_put
+bytec 4 // "nft_id"
+intc_0 // 0
+app_global_put
+retsub
+
+// health
+health_6:
+pushbytes 0x436f6e74726163742028476c6f62616c2043757272656e744170706c69636174696f6e49442920697320757020616e642072756e6e696e67 // "Contract (Global CurrentApplicationID) is up and running"
+store 1
+load 1
+len
+itob
+extract 6 0
+load 1
+concat
+store 1
+load 1
+retsub
+
+// hello
+hello_7:
+store 3
+pushbytes 0x48656c6c6f2c20 // "Hello, "
+load 3
+extract 2 0
+concat
+store 4
+load 4
+len
+itob
+extract 6 0
+load 4
+concat
+store 4
+load 4
+retsub
+
+// loan_expired
+loanexpired_8:
+txn Sender
+bytec 5 // "lender_address"
+app_global_get
+==
+assert
+txn Fee
+global MinTxnFee
+pushint 2 // 2
+*
+>=
+assert
+bytec_0 // "state"
+app_global_get
+pushint 2 // 2
+==
+assert
+global Round
+bytec 6 // "payback_deadline"
+app_global_get
+>
+assert
+itxn_begin
+pushint 4 // axfer
+itxn_field TypeEnum
+bytec 4 // "nft_id"
+app_global_get
+itxn_field XferAsset
+intc_1 // 1
+itxn_field AssetAmount
+bytec 5 // "lender_address"
+app_global_get
+itxn_field AssetReceiver
+intc_0 // 0
+itxn_field Fee
+itxn_submit
+bytec_0 // "state"
+intc_0 // 0
+app_global_put
+bytec 8 // "debt_left"
+intc_0 // 0
+app_global_put
+bytec 9 // "last_interest_update_block"
+intc_0 // 0
+app_global_put
+bytec 6 // "payback_deadline"
+intc_0 // 0
+app_global_put
+bytec 7 // "auction_period"
+intc_0 // 0
+app_global_put
+bytec 10 // "loan_threshold"
+intc_0 // 0
+app_global_put
+bytec_1 // "highest_bid"
+intc_0 // 0
+app_global_put
+bytec 5 // "lender_address"
+bytec_3 // ""
+app_global_put
+bytec_2 // "borrower_address"
+bytec_3 // ""
+app_global_put
+bytec 4 // "nft_id"
+intc_0 // 0
+app_global_put
+retsub
+
+// pay_me
+payme_9:
+txn Sender
+callsub authonly_3
+// unauthorized
+assert
+global CurrentApplicationAddress
+balance
+intc_3 // 100000
+intc_2 // 1000
++
+>
+assert
+itxn_begin
+intc_1 // pay
+itxn_field TypeEnum
+txn Sender
+itxn_field Receiver
+global CurrentApplicationAddress
+balance
+intc_3 // 100000
+intc_2 // 1000
++
+-
+itxn_field Amount
+itxn_submit
+retsub
+
+// pay_me_internal
+paymeinternal_10:
+global CurrentApplicationAddress
+balance
+intc_3 // 100000
+intc_2 // 1000
++
+>
+assert
+itxn_begin
+intc_1 // pay
+itxn_field TypeEnum
+txn Sender
+itxn_field Receiver
+global CurrentApplicationAddress
+balance
+intc_3 // 100000
+intc_2 // 1000
++
+-
+itxn_field Amount
+itxn_submit
+retsub
+
+// provide_access_to_nft
+provideaccesstonft_11:
+store 10
+bytec_0 // "state"
+app_global_get
+intc_0 // 0
+==
+assert
+global GroupSize
+pushint 3 // 3
+==
+assert
+txn Fee
+intc_2 // 1000
+pushint 2 // 2
+*
+>=
+assert
+itxn_begin
+pushint 4 // axfer
+itxn_field TypeEnum
+load 10
+itxn_field XferAsset
+global CurrentApplicationAddress
+itxn_field AssetReceiver
+intc_0 // 0
+itxn_field Fee
+intc_0 // 0
+itxn_field AssetAmount
+itxn_submit
+bytec 4 // "nft_id"
+load 10
+app_global_put
+bytec_0 // "state"
+intc_1 // 1
+app_global_put
+retsub
+
+// read_state
+readstate_12:
+bytec_0 // "state"
+app_global_get
+retsub
+
+// reset_state
+resetstate_13:
+bytec_0 // "state"
+intc_0 // 0
+app_global_put
+bytec 8 // "debt_left"
+intc_0 // 0
+app_global_put
+bytec 9 // "last_interest_update_block"
+intc_0 // 0
+app_global_put
+bytec 6 // "payback_deadline"
+intc_0 // 0
+app_global_put
+bytec 7 // "auction_period"
+intc_0 // 0
+app_global_put
+bytec 10 // "loan_threshold"
+intc_0 // 0
+app_global_put
+bytec_1 // "highest_bid"
+intc_0 // 0
+app_global_put
+bytec 5 // "lender_address"
+bytec_3 // ""
+app_global_put
+bytec_2 // "borrower_address"
+bytec_3 // ""
+app_global_put
+bytec 4 // "nft_id"
+intc_0 // 0
+app_global_put
+retsub
+
+// set_offer
+setoffer_14:
+store 14
+store 13
+store 12
+store 11
+global GroupSize
+pushint 3 // 3
+==
+assert
+load 11
+gtxns AssetReceiver
+global CurrentApplicationAddress
+==
+assert
+load 11
+gtxns XferAsset
+bytec 4 // "nft_id"
+app_global_get
+==
+assert
+load 11
+gtxns AssetAmount
+intc_1 // 1
+==
+assert
+load 11
+gtxns AssetSender
+txn Sender
+==
+assert
+bytec_0 // "state"
+app_global_get
+intc_0 // 0
+==
+assert
+bytec_0 // "state"
+intc_1 // 1
+app_global_put
+bytec 10 // "loan_threshold"
+load 12
+app_global_put
+bytec 7 // "auction_period"
+global Round
+load 13
++
+app_global_put
+bytec 6 // "payback_deadline"
+load 14
+app_global_put
+bytec_2 // "borrower_address"
+txn Sender
+app_global_put
+retsub
+
+// timeout
+timeout_15:
+txn Fee
+global MinTxnFee
+pushint 3 // 3
+*
+>=
+assert
+bytec_0 // "state"
+app_global_get
+intc_1 // 1
+==
+assert
+global Round
+bytec 7 // "auction_period"
+app_global_get
+>
+assert
+itxn_begin
+pushint 4 // axfer
+itxn_field TypeEnum
+bytec 4 // "nft_id"
+app_global_get
+itxn_field XferAsset
+intc_1 // 1
+itxn_field AssetAmount
+bytec_2 // "borrower_address"
+app_global_get
+itxn_field AssetReceiver
+intc_0 // 0
+itxn_field Fee
+bytec_1 // "highest_bid"
+app_global_get
+intc_0 // 0
+>
+bz timeout_15_l2
+itxn_next
+intc_1 // pay
+itxn_field TypeEnum
+bytec_1 // "highest_bid"
+app_global_get
+itxn_field Amount
+bytec 5 // "lender_address"
+app_global_get
+itxn_field Receiver
+intc_0 // 0
+itxn_field Fee
+timeout_15_l2:
+itxn_submit
+bytec_0 // "state"
+intc_0 // 0
+app_global_put
+bytec 8 // "debt_left"
+intc_0 // 0
+app_global_put
+bytec 9 // "last_interest_update_block"
+intc_0 // 0
+app_global_put
+bytec 6 // "payback_deadline"
+intc_0 // 0
+app_global_put
+bytec 7 // "auction_period"
+intc_0 // 0
+app_global_put
+bytec 10 // "loan_threshold"
+intc_0 // 0
+app_global_put
+bytec_1 // "highest_bid"
+intc_0 // 0
+app_global_put
+bytec 5 // "lender_address"
+bytec_3 // ""
+app_global_put
+bytec_2 // "borrower_address"
+bytec_3 // ""
+app_global_put
+bytec 4 // "nft_id"
+intc_0 // 0
+app_global_put
+retsub

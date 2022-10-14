@@ -1,13 +1,6 @@
-from beaker import sandbox
-
-from src.utils.accounts import *
 from pyteal import *
 from beaker import *
 from typing import Final
-from algosdk.future import transaction
-
-# Create a class, subclassing Application from beaker
-from src.utils.client import get_algod_client
 
 
 class BorrowMyNFT(Application):
@@ -56,7 +49,7 @@ class BorrowMyNFT(Application):
     # 0=initial state, 1=set_offer invoked, 2 = acceptBid invoked,
     state: Final[ApplicationStateValue] = ApplicationStateValue(
         stack_type=TealType.uint64,
-        descr="The current debt. debt_left=debt_left*((1+interset_rate)^(current_block - last_interest_update_block",
+        descr="The current contract state",
     )
 
     # Contract address minimum balance
@@ -70,18 +63,16 @@ class BorrowMyNFT(Application):
         """Deploys the contract and intialize app states"""
         return self.initialize_application_state()
 
-    @opt_in
-    def opt_in(self):
-        # No local state to set, so approve
-        return Approve()
-
-    @close_out
-    def close_out(self):
-        return Approve()
-
     @delete(authorize=Authorize.only(Global.creator_address()))
     def delete(self):
-        return Approve()
+        """Enable deletion only if state is 0 = initial"""
+        return Seq(
+            Assert(self.state == Int(0)),
+            If(
+                Balance(self.address) > (self.MIN_BAL + self.FEE),
+                self.pay_me_internal(),
+            ),
+        )
 
     # Add an external method with ABI method signature `hello(string)string`
     @external
@@ -98,78 +89,105 @@ class BorrowMyNFT(Application):
         return Seq(
             self.state.set(Int(0)),
             self.debt_left.set(Int(0)),
-            self.last_interest_update_block.set(int(0)),
+            self.last_interest_update_block.set(Int(0)),
             self.payback_deadline.set(Int(0)),
             self.auction_period.set(Int(0)),
             self.loan_threshold.set(Int(0)),
-            self.n_algos.set(Int(0)),
+            self.highest_bid.set(Int(0)),
             self.lender_address.set(Bytes("")),
             self.borrower_address.set(Bytes("")),
-            self.nft_id.set(Bytes(""))
+            self.nft_id.set(Int(0)),
+        )
+
+    @internal
+    def pay_me_internal(self):
+        app_balance = Balance(self.address)
+        return Seq(
+            Assert(
+                app_balance > (self.MIN_BAL + self.FEE)
+            ),
+            InnerTxnBuilder.Execute({
+                TxnField.type_enum: TxnType.Payment,
+                TxnField.receiver: Txn.sender(),
+                TxnField.amount: app_balance - (self.MIN_BAL + self.FEE),
+            })
         )
 
     @external(authorize=Authorize.only(Global.creator_address()))
-    def pay_me(self, receiver: abi.Account):
-        return InnerTxnBuilder.Execute({
-            TxnField.type_enum: TxnType.Payment,
-            TxnField.amount: Minus(Balance(Global.current_application_address()),
-                                   Add(MinBalance(Global.current_application_address()), Global.min_txn_fee())),
-            TxnField.receiver: receiver.address(),
-            TxnField.fee: Global.min_txn_fee()
-        })
+    def pay_me(self):
+        return self.pay_me_internal()
 
-    # 2 transactions are needed: one to transfer algo and increase the contract balance (the contract minimum balance
-    # must be sufficient to accept the nft), one to optin
-
+    # To be called from borrower to trigger the NFT optin to the contract
+    # this must be in a group of 3 transactions: [app_call, asset_xfer, app_call]
     @external
-    def optin(self, nft: abi.Asset):
+    def provide_access_to_nft(self, nft_id: abi.Uint64):
         return Seq(
-            Assert(Ge(Txn.fee(), Mul(Global.min_txn_fee(), Int(2)))),
-            # check the other tranaction exists and sends algo to this account
+            Assert(
+                self.state == Int(0),
+                Global.group_size() == Int(3),
+                Txn.fee() >= self.FEE * Int(2),
+            ),
             InnerTxnBuilder.Execute(
                 {
                     TxnField.type_enum: TxnType.AssetTransfer,
-                    TxnField.xfer_asset: nft.asset_id(),
+                    TxnField.xfer_asset: nft_id.get(),
                     TxnField.asset_receiver: self.address,
                     TxnField.fee: Int(0),
                     TxnField.asset_amount: Int(0),
                 }
-            )
+            ),
+            self.nft_id.set(nft_id.get()),
+            self.state.set(Int(1))
         )
 
-    # 2 transactions are needed:
+    # 2 transactions are checked:
     # one to transfer the NFT, 
     # and the one calling set_offer
     @external
-    def set_offer(self, nft: abi.Asset, loan_threshold: abi.Uint64, auction_period: abi.Uint64,
-                  payback_deadline: abi.Uint64):
+    def set_offer(
+            self,
+            asset_xfer: abi.AssetTransferTransaction,
+            loan_threshold: abi.Uint64,
+            auction_period: abi.Uint64,
+            payback_deadline: abi.Uint64
+    ):
         return Seq(
-            Assert(Eq(self.state, Int(0))),
-            Assert(Ge(loan_threshold, )),
-            Assert(Le(loan_threshold, )),
-            Assert(Ge(auction_period, )),
-            Assert(Le(auction_period, )),
-            Assert(Ge(payback_deadline, )),
-            Assert(Le(payback_deadline, )),
+            Assert(
+                Global.group_size() == Int(3),
+                # check asset transfer is correct
+                asset_xfer.get().asset_receiver() == self.address,
+                asset_xfer.get().xfer_asset() == self.nft_id.get(),
+                asset_xfer.get().asset_amount() == Int(1),
+                asset_xfer.get().asset_sender() == Txn.sender(),
+                self.state.get() == Int(0),
+                # TODO following conditions to be defined
+                # self.loan_threshold.get() > Int(0),
+            ),
+            # Assert(Eq(self.state, Int(0))),
+            # Assert(Ge(loan_threshold, )),
+            # Assert(Le(loan_threshold, )),
+            # Assert(Ge(auction_period, )),
+            # Assert(Le(auction_period, )),
+            # Assert(Ge(payback_deadline, )),
+            # Assert(Le(payback_deadline, )),
             # Assert(Txn.sender()=nft.sender())
             # Assert(nft.AssetReceiver, self.address)
             # ManagerAddr, FreezeAddr, ClawbackAddr of the asset must be null
             # AssetAmount must be 1
 
             self.state.set(Int(1)),
-            self.loan_threshold.set(loan_threshold),
-            self.auction_period.set(Add(Global.round(), auction_period)),
-            self.payback_deadline.set(payback_deadline),
-            self.nft_id.set(nft.asset_id()),
+            self.loan_threshold.set(loan_threshold.get()),
+            self.auction_period.set(Add(Global.round(), auction_period.get())),
+            self.payback_deadline.set(payback_deadline.get()),
             self.borrower_address.set(Txn.sender())
         )
 
     # 2 transactions are needed:
-    # one to transfer the n_algos, 
+    # one to transfer the highest_bid, 
     # one calling place_bid
     # @external
-    # def place_bid (n_algos: abi.Uint64):
-    # lender_address=tx.sender; n_algos=?????
+    # def place_bid (highest_bid: abi.Uint64):
+    # lender_address=tx.sender; highest_bid=?????
     # pass
 
     @external
@@ -177,15 +195,15 @@ class BorrowMyNFT(Application):
         return Seq(
             Assert(Ge(Txn.fee(), Mul(Global.min_txn_fee(), Int(2)))),
             Assert(Eq(Txn.sender(), self.borrower_address)),
-            Assert(Gt(self.n_algos, Int(0))),
+            Assert(Gt(self.highest_bid, Int(0))),
             self.state.set(Int(2)),
-            self.debt_left.set(self.n_algos),
+            self.debt_left.set(self.highest_bid),
             self.last_interest_update_block.set(Global.round()),
             self.payback_deadline.set(Add(Global.round(), self.payback_deadline)),
             InnerTxnBuilder.Execute(
                 {
                     TxnField.type_enum: TxnType.Payment,
-                    TxnField.amount: self.n_algos,
+                    TxnField.amount: self.highest_bid,
                     TxnField.receiver: self.borrower_address,
                     TxnField.fee: Int(0)
                 })
@@ -206,12 +224,12 @@ class BorrowMyNFT(Application):
                     TxnField.asset_receiver: self.borrower_address,
                     TxnField.fee: Int(0)
                 }),
-            If(Gt(self.n_algos, Int(0))).Then(
+            If(Gt(self.highest_bid, Int(0))).Then(
                 InnerTxnBuilder.Next(),
                 InnerTxnBuilder.SetFields(
                     {
                         TxnField.type_enum: TxnType.Payment,
-                        TxnField.amount: self.n_algos,
+                        TxnField.amount: self.highest_bid,
                         TxnField.receiver: self.lender_address,
                         TxnField.fee: Int(0)
                     })
@@ -236,12 +254,12 @@ class BorrowMyNFT(Application):
                     TxnField.fee: Int(0)
                 }
             ),
-            If(Gt(self.n_algos, Int(0))).Then(
+            If(Gt(self.highest_bid, Int(0))).Then(
                 InnerTxnBuilder.Next(),
                 InnerTxnBuilder.SetFields(
                     {
                         TxnField.type_enum: TxnType.Payment,
-                        TxnField.amount: self.n_algos,
+                        TxnField.amount: self.highest_bid,
                         TxnField.receiver: self.lender_address,
                         TxnField.fee: Int(0)
                     })
@@ -257,7 +275,6 @@ class BorrowMyNFT(Application):
     # def pay_back (m_algos:abi.Uint64):
     # current_block = ????Global.block+1 ; m_algos=?????
     # pass
-
     @external
     def loan_expired(self):
         return Seq(
@@ -278,59 +295,31 @@ class BorrowMyNFT(Application):
 
         # Add an external method with ABI method signature `hello(string)string`
 
+    @external(read_only=True)
+    def read_state(self, *, output: abi.Uint64):
+        """Read amount of RSVP to the event. Only callable by Creator."""
+        return output.set(self.state)
+
     @external
     def hello(self, name: abi.String, *, output: abi.String):
         # Set output to the result of `Hello, `+name
         return output.set(Concat(Bytes("Hello, "), name.get()))
 
 
-def demo():
-    # Create an Application client
-    all_sandbox_accounts = sandbox.get_accounts()
-    contract_owner = all_sandbox_accounts.pop()
-    borrower = all_sandbox_accounts.pop()
-    lender = all_sandbox_accounts.pop()
-
-    acc = sandbox.get_accounts().pop()
-    app_client = client.ApplicationClient(
-        # Get sandbox algod client
-        client=sandbox.get_algod_client(),
-        # Instantiate app with the program version (default is MAX_TEAL_VERSION)
-        app=BorrowMyNFT(version=6),
-        # Get acct from sandbox and pass the signer
-        signer=acc.signer  # pop().signer,
-    )
-
-    # Deploy the app on-chain
-    app_id, app_addr, txid = app_client.create()
-    print(
-        f"""Deployed app in txid {txid}
-        App ID: {app_id} 
-        Address: {app_addr} 
-    """
-    )
-    print(app_client.client.account_info(acc.address).get('amount'))
-    app_client.fund(5 * consts.algo)
-    print(app_client.client.account_info(acc.address).get('amount'))
-    result = app_client.call(BorrowMyNFT.pay_me, receiver=acc.address)
-    print(result.return_value, result.decode_error)
-    print((app_client.client.account_info(acc.address)).get('amount'))
-    print(acc.address)
-    # params = app_client.get_suggested_params()
-    # receiver=app_client.get_application_account_info().address
-    # note = "Hello World".encode()
-    # amount = 1000000
-    # unsigned_txn = transaction.PaymentTxn(app_client.get_sender(), params, receiver, amount, None, note)
-    # signed_txn=unsigned_txn.sign(acc.private_key)
-    # txid = app_client.send_transaction(signed_txn)
-    # print("Successfully sent transaction with txID: {}".format(txid))
-    # try:
-    #    confirmed_txn = transaction.wait_for_confirmation(app_client, txid, 4)  
-
-    # except Exception as err:
-    #    print(err)
-    #    return
-
-
 if __name__ == "__main__":
-    demo()
+    import os
+    import json
+
+    path = os.path.dirname(os.path.abspath(__file__))
+
+    app = BorrowMyNFT()
+
+    # Dump the contract as json
+    with open(os.path.join(path, "contract.json"), "w") as f:
+        f.write(json.dumps(app.application_spec(), indent=2))
+
+    # Dump the contract as approval and clear TEAL
+    with open(os.path.join(path, "approval.teal"), "w") as f:
+        f.write(app.approval_program)
+    with open(os.path.join(path, "clear.teal"), "w") as f:
+        f.write(app.clear_program)

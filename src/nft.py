@@ -12,7 +12,7 @@ def create_default_nft(client, private_key, address, asset_name, asset_unit_name
     # are all empty for the nft as specified in documentation
     # https://developer.algorand.org/docs/get-started/tokenization/nft/
 
-    f = open('../assets/nft_metadata.json')
+    f = open('../../assets/nft_metadata.json')
     json_metadata = json.load(f)
     f.close()
 
@@ -55,6 +55,7 @@ def create_default_nft(client, private_key, address, asset_name, asset_unit_name
     print("Created NFT with asset ID: {}".format(asset_id))
 
     return asset_id
+
 
 
 # Just as a reference, this is the json metadata that is used in ARC-003
