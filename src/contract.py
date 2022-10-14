@@ -213,25 +213,28 @@ class BorrowMyNFT(Application):
 
     @external
     def place_bid (self, payment: abi.PaymentTransaction):
-        Assert(Global.group_size() == Int(2)),
-        Assert(Ge(Txn.fee(), Mul(Global.min_txn_fee(), Int(2)))),
-        Assert(Eq(self.state, Int(1))),
-        Assert(payment.get().receiver() == self.address),
-        Assert(Gt(payment.get().amount(), self.highest_bid)),
-        Assert(Gt(payment.get().amount(), self.loan_threshold)),
-        Assert(Le(payment.get().amount(), self.MAX_N_ALGOS)),
-        Assert(Le(Global.round(), self.auction_period)),
-        If(Gt(self.highest_bid, Int(0))).Then(Seq(
-            InnerTxnBuilder.Execute(
-            {
-                TxnField.type_enum: TxnType.Payment,
-                TxnField.amount: self.highest_bid,
-                TxnField.receiver: self.lender_address,
-                TxnField.fee: Int(0)
-            })
-        ))
-        self.highest_bid.set(payment.get().amount())
-        self.lender_address.set(payment.get().sender())
+        return Seq(
+            Assert(Global.group_size() == Int(2)),
+            Assert(Ge(Txn.fee(), Mul(Global.min_txn_fee(), Int(2)))),
+            Assert(Eq(self.state, Int(1))),
+            Assert(payment.get().receiver() == self.address),
+            Assert(Gt(payment.get().amount(), self.highest_bid)),
+            Assert(Gt(payment.get().amount(), self.loan_threshold)),
+            Assert(Le(payment.get().amount(), self.MAX_N_ALGOS)),
+            Assert(Le(Global.round(), self.auction_period)),
+            If(Gt(self.highest_bid, Int(0))).Then(Seq(
+                InnerTxnBuilder.Execute(
+                {
+                    TxnField.type_enum: TxnType.Payment,
+                    TxnField.amount: self.highest_bid,
+                    TxnField.receiver: self.lender_address,
+                    TxnField.fee: Int(0)
+                })
+            )),
+            self.highest_bid.set(payment.get().amount()),
+            self.lender_address.set(payment.get().sender())
+        )
+
 
     @external
     def accept_bid(self):
@@ -315,7 +318,7 @@ class BorrowMyNFT(Application):
     @external
     def pay_back (self, payment:abi.PaymentTransaction):
         #interest=debt_left*INTEREST_RATE_NUM*blocks/INTEREST_RATE_DEN. Notice: INTEREST_RATE_NUM=1
-        interest = Div(Mul(self.debt_left, Minus(Global.round(), self.last_interest_update_block)), self.INTEREST_RATE_DEN),
+        interest = Div(Mul(self.debt_left, Minus(Global.round(), self.last_interest_update_block)), self.INTEREST_RATE_DEN)
         return Seq(
             Assert(Global.group_size() == Int(2)),
             Assert(Ge(Txn.fee(), Mul(Global.min_txn_fee(), Int(3)))),
