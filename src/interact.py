@@ -1,53 +1,42 @@
-from beaker import sandbox, consts
-from beaker.client import ApplicationClient, LogicException
+import json
+
+from beaker import sandbox
+from beaker.client import ApplicationClient
 
 from src.contract import BorrowMyNFT
 
-client = sandbox.get_algod_client()
+# Get the sandbox accounts
 accounts = sandbox.get_accounts()
-
 contract_owner_account = accounts.pop()
 borrower_account = accounts.pop()
 lender_account = accounts.pop()
-
-# Create instance of the BorrowMyNFT contract
+print( f"Contract owner's address: {contract_owner_account.address}", sep = "\n\n")
+print( f"Borrower's address:  {borrower_account.address}", sep = "\n\n")
+print(f"Lender's address: {lender_account.address}", sep = "\n\n")
+# Set up the algod client, automatic configuration
+client = sandbox.get_algod_client()
+#Create instance of the BorrowMyNFT contract
 app = BorrowMyNFT()
-
-# Create an Application client for event creator containing both an algod client and the app
+#Create the Application Client containing the algod client and the app
 app_client = ApplicationClient(client, app, signer=contract_owner_account.signer)
-
-
-def deploy_and_call_status():
-    print("### CREATE AND INITIALIZE CONTRACT ### \n")
+def demo():
     sp = client.suggested_params()
+    print(f"Suggested flat fee is {sp.min_fee} microAlgos")
+    print("### CREATE AND INITIALIZE CONTRACT ### \n")
+    # Create the application on chain, set the app id for the app client
     app_id, app_addr, txid = app_client.create()
-    print(f"Deployed app in txid {txid}")
-
-    # Fund the contract for minimum balance
-    app_client.fund(100 * consts.milli_algo)
-    print(f"Contract Balance: {client.account_info(app_addr).get('amount')} microAlgos \n")
-
-    # Opt in mandatory for everyone, contract_owner included
-    # app_client.opt_in()
-    health = app_client.call(app.health)
-    print(f"Health: {health.return_value} \n")
-
-    # Call the health method from borrower account
-    app_client_borrower = app_client.prepare(signer=borrower_account.signer)
-    # Try calling without opting in
-    try:
-        # Get the global state
-        health = app_client_borrower.call(app.health)
-        print(f"Health: {health.return_value} \n")
-    except LogicException as e:
-        print(f"\n{e}\n")
-
-    try:
-        # app_client.close_out()
-        app_client.delete()
-    except Exception as e:
-        print(e)
-
+    # app_id, app_addr, txid = app_client.create(event_price=1 * consts.algo)
+    print(f"Current Application state: {app_client.get_application_state()}\n")
+    print(
+        f"""Deployed app in txid {txid}
+        App ID: {app_id}
+        Address: {app_addr}
+        """)
+    print(f"Account local state: {app_client.get_account_state()}, \n")
+    # Show Application Account information
+    print("### APPLICATION ACCOUNT INFO: \n")
+    app_account_info = json.dumps(app_client.get_application_account_info(), indent=4)
+    print(app_account_info)
 
 if __name__ == "__main__":
-    deploy_and_call_status()
+    demo()
