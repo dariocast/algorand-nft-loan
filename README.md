@@ -9,6 +9,24 @@
 ## Goal of the project
 The problem identified is the access to liquidity in terms of cryptocurrency or specific assets that could be addressed with a loan mechanism of owned NFT.
 
+## Environment setup
+Create the development environment:
+1. Make sure the docker daemon is running and the docker-compose is correctly installed
+2. Connect to the network
+    * If you do not have the `sandbox` cloned, follow the [Sandobox](https://github.com/algorand/sandbox) installation guidelines otherwise go to step 3.
+3. Launch `sandbox`
+    * `./sendbox up dev`
+4. Clone the repo
+5. Check your python version is `>= 3.10`. You can verify it with the `python --version`
+6. Create the Virtual Environment
+    * `pip3 install virtualenv`
+    * `virtualenv venv`
+    * `source venv/bin/activate`
+    * `pip3 install pyteal py-algorand-sdk`
+7. Test the environment with https://developer.algorand.org/docs/sdks/python/
+8. Install all the required packages
+    * `pip install -r requirements.txt`
+    
 ## Smart contract specifications
 The smart contract is able to accept an NFT from an account (borrower) for a period of time, storing info on the global state. During this period other accounts (lenders) are able to bid in ALGO for that NFT. At any time during this initial period, the borrower can interact with the contract to get back the NFT (in this case the bidded amount returns to the lender) or to accept the loan. In the second case, there is a predefined period of time in which the borrower must repay the loan to the lender, otherwise, after the deadline, the lender can obtain the NFT by interacting with the contract.
 So, we have two different roles:
