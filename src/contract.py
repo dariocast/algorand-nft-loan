@@ -53,11 +53,6 @@ class BorrowMyNFT(Application):
         descr="The current contract state",
     )
 
-    temp_uint64: Final[ApplicationStateValue] = ApplicationStateValue(
-        stack_type=TealType.uint64,
-        descr="A temporary variable. I do not know if there is a way to put it inside a method.",
-    )
-
 
 
     # Contract address minimum balance
@@ -319,15 +314,15 @@ class BorrowMyNFT(Application):
 
     @external
     def pay_back (self, payment:abi.PaymentTransaction):
+        interest = Div(Mul(self.debt_left, Minus(Global.round(), self.last_interest_update_block)), self.INTEREST_RATE_DEN),
         return Seq(
             Assert(Global.group_size() == Int(2)),
             Assert(Ge(Txn.fee(), Mul(Global.min_txn_fee(), Int(3)))),
             Assert(Eq(self.state, Int(2))),
             Assert(payment.get().receiver() == self.address),
             #interest=debt_left*INTEREST_RATE_NUM*blocks/INTEREST_RATE_DEN. Notice: INTEREST_RATE_NUM=1
-            self.temp_uint64.set(Div(Mul(self.debt_left, Minus(Global.round, self.last_interest_update_block)), self.INTEREST_RATE_DEN)),
-            Assert(Ge(payment.get().amount(), self.temp_uint64)),
-            self.debt_left.set(Add(self.debt_left, self.temp_uint64)),
+            Assert(Ge(payment.get().amount(), interest)),
+            self.debt_left.set(Add(self.debt_left, interest)),
             self.last_interest_update_block.set(Global.round()),
             If(Gt(payment.get().amount(), self.debt_left)).Then(Seq(
                 InnerTxnBuilder.Begin(),
