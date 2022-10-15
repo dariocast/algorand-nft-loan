@@ -39,7 +39,7 @@ The Stateful Smart Contract stores the following information:
 	- borrower_address (the address of the borrower)
 	- lender_address (current bidder)
 	- n_Algos (highest bid)
-	- loan_threshold (auction staring amount)
+	- auction_base (auction staring amount)
 	- auction_period (number of blocks from the set_offer creation)
 	- payback_deadline (number of blocks from the bid acceptance)
 	- last_interest_update_block (starting block to compute the interest. It stores the block corresponding to the last successful invocation of pay_back)
@@ -47,9 +47,9 @@ The Stateful Smart Contract stores the following information:
 
 The smart contract supports the following operations.
 
-- `set_offer (NFT, borrower_address, loan_threshold, auction_period, payback_deadline)`
+- `set_offer (NFT, borrower_address, auction_base, auction_period, payback_deadline)`
 
-B sends the NFT to the smart contract. B establishes a minimum loan threshold (loan_threshold), the number of blocks of the auction validity period (auction_period), and the loan payback deadline (payback_deadline), which is the number of blocks from when accept_bid is invoked. The smart contract stores B's address (borrower_address) for future ownership transfers.
+B sends the NFT to the smart contract. B establishes a minimum loan threshold (auction_base), the number of blocks of the auction validity period (auction_period), and the loan payback deadline (payback_deadline), which is the number of blocks from when accept_bid is invoked. The smart contract stores B's address (borrower_address) for future ownership transfers.
 
 - `place_bid (lender_address, n_Algos)`
 

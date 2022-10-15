@@ -95,7 +95,7 @@ def create_send_delete():
         app.set_offer,
         suggested_params=sp,
         asset_xfer=asset_xfer_txn,
-        loan_threshold=1000,
+        auction_base=1000,
         auction_period=100,
         payback_deadline=100,
     )
@@ -106,11 +106,33 @@ def create_send_delete():
     state = app_client.get_application_state()
     print(f"State: {json.dumps(state, indent=4)} \n")
 
+    #  Cancelling offert
+    print("Cancelling offer")
+    sp = client.suggested_params()
+    sp.flat_fee = True
+    sp.fee = 3000
+    # need passing asset id as foreign, contract search referenced id (saved in state) in that array
+    app_client_borrower.call(
+        app.cancel_offer,
+        suggested_params=sp,
+        foreign_assets=[asset_id],
+    )
+
+    # Read state from owner account
+    print("Getting whole state from owner account")
+    state = app_client.get_application_state()
+    print(f"State: {json.dumps(state, indent=4)} \n")
+
     # Delete contract
     print("Deleting contract")
-    # at this time delete fails because state is never 0 again
     try:
-        app_client.delete()
+        # need double fee from owner to get back money
+        sp = client.suggested_params()
+        sp.flat_fee = True
+        sp.fee = 2000
+        app_client.delete(
+            suggested_params=sp,
+        )
         print("Contract deleted")
     except LogicException as e:
         print(f"Logic Exception: {e}")
