@@ -137,6 +137,7 @@ class BorrowMyNFT(Application):
             })
         )
 
+    # This method is used to send back the nft the borrower
     @internal(TealType.none)
     def close_nft_to(self, asset_id: Expr, account: Expr) -> Expr:
         asset_holding = AssetHolding.balance(

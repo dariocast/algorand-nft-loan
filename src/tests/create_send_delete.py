@@ -111,6 +111,7 @@ def create_send_delete():
     sp = client.suggested_params()
     sp.flat_fee = True
     sp.fee = 3000
+    # need passing asset id as foreign, contract search referenced id (saved in state) in that array
     app_client_borrower.call(
         app.cancel_offer,
         suggested_params=sp,
