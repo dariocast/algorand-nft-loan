@@ -21,7 +21,7 @@ class BorrowMyNFT(Application):
         default=Int(0),
         descr="Highest bid",
     )
-    loan_threshold: Final[ApplicationStateValue] = ApplicationStateValue(
+    auction_base: Final[ApplicationStateValue] = ApplicationStateValue(
         stack_type=TealType.uint64,
         descr="Auction starting amount",
     )
@@ -114,7 +114,7 @@ class BorrowMyNFT(Application):
             self.last_interest_update_block.set(Int(0)),
             self.payback_deadline.set(Int(0)),
             self.auction_period.set(Int(0)),
-            self.loan_threshold.set(Int(0)),
+            self.auction_base.set(Int(0)),
             self.highest_bid.set(Int(0)),
             self.lender_address.set(Bytes("")),
             self.borrower_address.set(Bytes("")),
@@ -135,6 +135,29 @@ class BorrowMyNFT(Application):
                 TxnField.amount: Balance(self.address) - MinBalance(self.address),
                 TxnField.fee: Int(0)
             })
+        )
+
+    @internal(TealType.none)
+    def close_nft_to(self, asset_id: Expr, account: Expr) -> Expr:
+        asset_holding = AssetHolding.balance(
+            Global.current_application_address(), asset_id
+        )
+        return Seq(
+            asset_holding,
+            If(asset_holding.hasValue()).Then(
+                Seq(
+                    InnerTxnBuilder.Begin(),
+                    InnerTxnBuilder.SetFields(
+                        {
+                            TxnField.type_enum: TxnType.AssetTransfer,
+                            TxnField.xfer_asset: asset_id,
+                            TxnField.asset_close_to: account,
+                            TxnField.fee: Int(0),
+                        }
+                    ),
+                    InnerTxnBuilder.Submit(),
+                )
+            ),
         )
 
     @external(authorize=Authorize.only(Global.creator_address()))
@@ -176,7 +199,7 @@ class BorrowMyNFT(Application):
     def set_offer(
             self,
             asset_xfer: abi.AssetTransferTransaction,
-            loan_threshold: abi.Uint64,
+            auction_base: abi.Uint64,
             auction_period: abi.Uint64,
             payback_deadline: abi.Uint64
     ):
@@ -190,12 +213,15 @@ class BorrowMyNFT(Application):
                 # TODO capire perché il seguente check fallisce, ora lascio commentato
                 # asset_xfer.get().asset_sender() == Txn.sender(),
                 self.state.get() == Int(0),
-                # TODO following conditions to be defined
-                # self.loan_threshold.get() > Int(0),
+                auction_base.get() > Int(0),
+                auction_period.get() > Global.round(),
+                # payback now is the number of round into which borrower must pay after accepting loan
+                payback_deadline.get() > Int(0),
+                # TODO other check may be performed
             ),
             # Assert(Eq(self.state, Int(0))),
-            # Assert(Ge(loan_threshold, )),
-            # Assert(Le(loan_threshold, )),
+            # Assert(Ge(auction_base, )),
+            # Assert(Le(auction_base, )),
             # Assert(Ge(auction_period, )),
             # Assert(Le(auction_period, )),
             # Assert(Ge(payback_deadline, )),
@@ -206,7 +232,7 @@ class BorrowMyNFT(Application):
             # AssetAmount must be 1
 
             self.state.set(Int(1)),
-            self.loan_threshold.set(loan_threshold.get()),
+            self.auction_base.set(auction_base.get()),
             self.auction_period.set(Add(Global.round(), auction_period.get())),
             self.payback_deadline.set(payback_deadline.get()),
             self.borrower_address.set(Txn.sender())
@@ -221,7 +247,7 @@ class BorrowMyNFT(Application):
             Assert(Eq(self.state, Int(1))),
             Assert(payment.get().receiver() == self.address),
             Assert(Gt(payment.get().amount(), self.highest_bid)),
-            Assert(Gt(payment.get().amount(), self.loan_threshold)),
+            Assert(Gt(payment.get().amount(), self.auction_base)),
             Assert(Le(payment.get().amount(), self.MAX_N_ALGOS)),
             Assert(Le(Global.round(), self.auction_period)),
             If(Gt(self.highest_bid, Int(0))).Then(Seq(
@@ -290,30 +316,23 @@ class BorrowMyNFT(Application):
     @external
     def cancel_offer(self):
         return Seq(
-            Assert(Eq(Txn.sender(), self.borrower_address)),
-            Assert(Ge(Txn.fee(), Mul(Global.min_txn_fee(), Int(3)))),
-            Assert(Eq(self.state, Int(1))),
-            InnerTxnBuilder.Begin(),
-            InnerTxnBuilder.SetFields(
-                {
-                    TxnField.type_enum: TxnType.AssetTransfer,
-                    TxnField.xfer_asset: self.nft_id,
-                    TxnField.asset_amount: Int(1),
-                    TxnField.asset_receiver: self.borrower_address,
-                    TxnField.fee: Int(0)
-                }
+            Assert(
+                Txn.sender() == self.borrower_address.get(),
+                self.state == Int(1),
+                Txn.fee() >= Global.min_txn_fee() * Int(3),
             ),
+            self.close_nft_to(self.nft_id.get(), self.borrower_address.get()),
             If(Gt(self.highest_bid, Int(0))).Then(Seq(
-                InnerTxnBuilder.Next(),
+                InnerTxnBuilder.Begin(),
                 InnerTxnBuilder.SetFields(
                     {
                         TxnField.type_enum: TxnType.Payment,
-                        TxnField.amount: self.highest_bid,
-                        TxnField.receiver: self.lender_address,
+                        TxnField.amount: self.highest_bid.get(),
+                        TxnField.receiver: self.lender_address.get(),
                         TxnField.fee: Int(0)
-                    })
+                    }),
+                InnerTxnBuilder.Submit(),
             )),
-            InnerTxnBuilder.Submit(),
             self.reset_state()
         )
 
