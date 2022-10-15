@@ -130,34 +130,6 @@ class BorrowMyNFT(Application):
             })
         )
 
-    # This method is used to send back the nft the borrower
-    @internal(TealType.none)
-    def close_nft_to(self, asset_id: Expr, account: Expr) -> Expr:
-        asset_holding = AssetHolding.balance(
-            Global.current_application_address(), asset_id
-        )
-        return Seq(
-            Assert(
-                # Double fee need to be paid by outer transaction
-                Txn.fee() >= Global.min_txn_fee() * Int(2),
-            ),
-            asset_holding,
-            If(asset_holding.hasValue()).Then(
-                Seq(
-                    InnerTxnBuilder.Begin(),
-                    InnerTxnBuilder.SetFields(
-                        {
-                            TxnField.type_enum: TxnType.AssetTransfer,
-                            TxnField.xfer_asset: asset_id,
-                            TxnField.asset_close_to: account,
-                            TxnField.fee: Int(0),
-                        }
-                    ),
-                    InnerTxnBuilder.Submit(),
-                )
-            ),
-        )
-
     @external(authorize=Authorize.only(Global.creator_address()))
     def pay_me(self):
         return self.pay_me_internal()
@@ -416,16 +388,18 @@ class BorrowMyNFT(Application):
     @external
     def loan_expired(self):
         return Seq(
-            Assert(Eq(Txn.sender(), self.lender_address)),
-            Assert(Ge(Txn.fee(), Mul(Global.min_txn_fee(), Int(2)))),
-            Assert(Eq(self.state, Int(2))),
-            Assert(Gt(Global.round(), self.payback_deadline)),
+            Assert(
+                Txn.sender() == self.lender_address.get(),
+                Txn.fee() >= Global.min_txn_fee() * Int(2),
+                self.state.get() == Int(2),
+                Global.round() >= self.payback_deadline.get()
+            ),
             InnerTxnBuilder.Execute(
                 {
                     TxnField.type_enum: TxnType.AssetTransfer,
-                    TxnField.xfer_asset: self.nft_id,
+                    TxnField.xfer_asset: self.nft_id.get(),
                     TxnField.asset_amount: Int(1),
-                    TxnField.asset_receiver: self.lender_address,
+                    TxnField.asset_receiver: self.lender_address.get(),
                     TxnField.fee: Int(0)
                 }),
             self.reset_state()
