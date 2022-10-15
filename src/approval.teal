@@ -71,7 +71,7 @@ intc_0 // 0
 !=
 &&
 assert
-callsub timeout_18
+callsub timeout_17
 intc_1 // 1
 return
 main_l17:
@@ -105,7 +105,7 @@ load 10
 load 11
 load 12
 load 13
-callsub setoffer_17
+callsub setoffer_16
 intc_1 // 1
 return
 main_l18:
@@ -117,7 +117,7 @@ intc_0 // 0
 !=
 &&
 assert
-callsub resetstate_16
+callsub resetstate_15
 intc_1 // 1
 return
 main_l19:
@@ -129,7 +129,7 @@ intc_0 // 0
 !=
 &&
 assert
-callsub readstate_15
+callsub readstate_14
 store 9
 bytec 11 // 0x151f7c75
 load 9
@@ -162,7 +162,7 @@ intc_1 // pay
 assert
 load 7
 load 8
-callsub provideaccesstonft_14
+callsub provideaccesstonft_13
 intc_1 // 1
 return
 main_l21:
@@ -184,7 +184,7 @@ intc_1 // pay
 ==
 assert
 load 6
-callsub placebid_13
+callsub placebid_12
 intc_1 // 1
 return
 main_l22:
@@ -196,7 +196,7 @@ intc_0 // 0
 !=
 &&
 assert
-callsub paymeinternal_12
+callsub paymeinternal_11
 intc_1 // 1
 return
 main_l23:
@@ -208,7 +208,7 @@ intc_0 // 0
 !=
 &&
 assert
-callsub payme_11
+callsub payme_10
 intc_1 // 1
 return
 main_l24:
@@ -230,7 +230,7 @@ intc_1 // pay
 ==
 assert
 load 5
-callsub payback_10
+callsub payback_9
 intc_1 // 1
 return
 main_l25:
@@ -242,7 +242,7 @@ intc_0 // 0
 !=
 &&
 assert
-callsub loanexpired_9
+callsub loanexpired_8
 intc_1 // 1
 return
 main_l26:
@@ -255,7 +255,7 @@ intc_0 // 0
 &&
 assert
 txna ApplicationArgs 1
-callsub hello_8
+callsub hello_7
 store 2
 bytec 11 // 0x151f7c75
 load 2
@@ -272,7 +272,7 @@ intc_0 // 0
 !=
 &&
 assert
-callsub health_7
+callsub health_6
 store 0
 bytec 11 // 0x151f7c75
 load 0
@@ -337,7 +337,7 @@ bytec 10 // "auction_base"
 intc_0 // 0
 app_global_put
 bytec 9 // "auction_period"
-pushint 17280 // 17280
+intc_0 // 0
 app_global_put
 bytec 4 // "borrower_address"
 bytec 5 // ""
@@ -450,7 +450,7 @@ assert
 bytec_0 // "state"
 app_global_get
 intc_1 // 1
->
+==
 assert
 bytec_0 // "state"
 intc_2 // 2
@@ -505,17 +505,23 @@ pushint 3 // 3
 *
 >=
 assert
+itxn_begin
+intc_3 // axfer
+itxn_field TypeEnum
 bytec 6 // "nft_id"
 app_global_get
+itxn_field XferAsset
 bytec 4 // "borrower_address"
 app_global_get
-callsub closenftto_6
+itxn_field AssetCloseTo
+intc_0 // 0
+itxn_field Fee
 bytec_2 // "highest_bid"
 app_global_get
 intc_0 // 0
 >
 bz canceloffer_5_l2
-itxn_begin
+itxn_next
 intc_1 // pay
 itxn_field TypeEnum
 bytec_2 // "highest_bid"
@@ -560,33 +566,9 @@ intc_0 // 0
 app_global_put
 retsub
 
-// close_nft_to
-closenftto_6:
-store 15
-store 14
-global CurrentApplicationAddress
-load 14
-asset_holding_get AssetBalance
-store 17
-store 16
-load 17
-bz closenftto_6_l2
-itxn_begin
-intc_3 // axfer
-itxn_field TypeEnum
-load 14
-itxn_field XferAsset
-load 15
-itxn_field AssetCloseTo
-intc_0 // 0
-itxn_field Fee
-itxn_submit
-closenftto_6_l2:
-retsub
-
 // health
-health_7:
-pushbytes 0x436f6e74726163742028476c6f62616c2043757272656e744170706c69636174696f6e49442920697320757020616e642072756e6e696e67 // "Contract (Global CurrentApplicationID) is up and running"
+health_6:
+pushbytes 0x436f6e747261637420697320757020616e642072756e6e696e6721 // "Contract is up and running!"
 store 1
 load 1
 len
@@ -599,7 +581,7 @@ load 1
 retsub
 
 // hello
-hello_8:
+hello_7:
 store 3
 pushbytes 0x48656c6c6f2c20 // "Hello, "
 load 3
@@ -617,7 +599,7 @@ load 4
 retsub
 
 // loan_expired
-loanexpired_9:
+loanexpired_8:
 txn Sender
 bytec_3 // "lender_address"
 app_global_get
@@ -686,8 +668,8 @@ app_global_put
 retsub
 
 // pay_back
-payback_10:
-store 18
+payback_9:
+store 14
 global GroupSize
 intc_2 // 2
 ==
@@ -703,12 +685,12 @@ app_global_get
 intc_2 // 2
 ==
 assert
-load 18
+load 14
 gtxns Receiver
 global CurrentApplicationAddress
 ==
 assert
-load 18
+load 14
 gtxns Amount
 bytec_1 // "debt_left"
 app_global_get
@@ -738,22 +720,22 @@ app_global_put
 bytec 7 // "last_interest_update_block"
 global Round
 app_global_put
-load 18
+load 14
 gtxns Amount
 bytec_1 // "debt_left"
 app_global_get
 >
-bnz payback_10_l4
-load 18
+bnz payback_9_l4
+load 14
 gtxns Amount
 bytec_1 // "debt_left"
 app_global_get
 ==
-bnz payback_10_l3
+bnz payback_9_l3
 itxn_begin
 intc_1 // pay
 itxn_field TypeEnum
-load 18
+load 14
 gtxns Amount
 itxn_field Amount
 bytec_3 // "lender_address"
@@ -765,12 +747,12 @@ itxn_submit
 bytec_1 // "debt_left"
 bytec_1 // "debt_left"
 app_global_get
-load 18
+load 14
 gtxns Amount
 -
 app_global_put
-b payback_10_l5
-payback_10_l3:
+b payback_9_l5
+payback_9_l3:
 itxn_begin
 intc_1 // pay
 itxn_field TypeEnum
@@ -826,12 +808,12 @@ app_global_put
 bytec 6 // "nft_id"
 intc_0 // 0
 app_global_put
-b payback_10_l5
-payback_10_l4:
+b payback_9_l5
+payback_9_l4:
 itxn_begin
 intc_1 // pay
 itxn_field TypeEnum
-load 18
+load 14
 gtxns Amount
 bytec_1 // "debt_left"
 app_global_get
@@ -896,11 +878,11 @@ app_global_put
 bytec 6 // "nft_id"
 intc_0 // 0
 app_global_put
-payback_10_l5:
+payback_9_l5:
 retsub
 
 // pay_me
-payme_11:
+payme_10:
 txn Sender
 callsub authonly_3
 // unauthorized
@@ -939,7 +921,7 @@ itxn_submit
 retsub
 
 // pay_me_internal
-paymeinternal_12:
+paymeinternal_11:
 txn Fee
 global MinTxnFee
 intc_2 // 2
@@ -974,8 +956,8 @@ itxn_submit
 retsub
 
 // place_bid
-placebid_13:
-store 19
+placebid_12:
+store 15
 global GroupSize
 intc_2 // 2
 ==
@@ -991,24 +973,24 @@ app_global_get
 intc_1 // 1
 ==
 assert
-load 19
+load 15
 gtxns Receiver
 global CurrentApplicationAddress
 ==
 assert
-load 19
+load 15
 gtxns Amount
 bytec_2 // "highest_bid"
 app_global_get
 >
 assert
-load 19
+load 15
 gtxns Amount
 bytec 10 // "auction_base"
 app_global_get
 >
 assert
-load 19
+load 15
 gtxns Amount
 pushint 200000000000 // 200000000000
 <=
@@ -1022,7 +1004,7 @@ bytec_2 // "highest_bid"
 app_global_get
 intc_0 // 0
 >
-bz placebid_13_l2
+bz placebid_12_l2
 itxn_begin
 intc_1 // pay
 itxn_field TypeEnum
@@ -1035,21 +1017,21 @@ itxn_field Receiver
 intc_0 // 0
 itxn_field Fee
 itxn_submit
-placebid_13_l2:
+placebid_12_l2:
 bytec_2 // "highest_bid"
-load 19
+load 15
 gtxns Amount
 app_global_put
 bytec_3 // "lender_address"
-load 19
+load 15
 gtxns Sender
 app_global_put
 retsub
 
 // provide_access_to_nft
-provideaccesstonft_14:
-store 21
-store 20
+provideaccesstonft_13:
+store 17
+store 16
 global GroupSize
 intc_2 // 2
 ==
@@ -1060,12 +1042,12 @@ intc_2 // 2
 *
 >=
 assert
-load 21
+load 17
 gtxns Receiver
 global CurrentApplicationAddress
 ==
 assert
-load 21
+load 17
 gtxns Amount
 intc 4 // 100000
 >=
@@ -1073,7 +1055,7 @@ assert
 itxn_begin
 intc_3 // axfer
 itxn_field TypeEnum
-load 20
+load 16
 txnas Assets
 itxn_field XferAsset
 global CurrentApplicationAddress
@@ -1084,19 +1066,19 @@ intc_0 // 0
 itxn_field AssetAmount
 itxn_submit
 bytec 6 // "nft_id"
-load 20
+load 16
 txnas Assets
 app_global_put
 retsub
 
 // read_state
-readstate_15:
+readstate_14:
 bytec_0 // "state"
 app_global_get
 retsub
 
 // reset_state
-resetstate_16:
+resetstate_15:
 bytec_0 // "state"
 intc_0 // 0
 app_global_put
@@ -1130,27 +1112,27 @@ app_global_put
 retsub
 
 // set_offer
-setoffer_17:
-store 25
-store 24
-store 23
-store 22
+setoffer_16:
+store 21
+store 20
+store 19
+store 18
 global GroupSize
 intc_2 // 2
 ==
 assert
-load 22
+load 18
 gtxns AssetReceiver
 global CurrentApplicationAddress
 ==
 assert
-load 22
+load 18
 gtxns XferAsset
 bytec 6 // "nft_id"
 app_global_get
 ==
 assert
-load 22
+load 18
 gtxns AssetAmount
 intc_1 // 1
 ==
@@ -1160,15 +1142,15 @@ app_global_get
 intc_0 // 0
 ==
 assert
-load 23
+load 19
 intc_0 // 0
 >
 assert
-load 24
+load 20
 global Round
 >
 assert
-load 25
+load 21
 intc_0 // 0
 >
 assert
@@ -1176,15 +1158,13 @@ bytec_0 // "state"
 intc_1 // 1
 app_global_put
 bytec 10 // "auction_base"
-load 23
+load 19
 app_global_put
 bytec 9 // "auction_period"
-global Round
-load 24
-+
+load 20
 app_global_put
 bytec 8 // "payback_deadline"
-load 25
+load 21
 app_global_put
 bytec 4 // "borrower_address"
 txn Sender
@@ -1192,7 +1172,7 @@ app_global_put
 retsub
 
 // timeout
-timeout_18:
+timeout_17:
 txn Fee
 global MinTxnFee
 pushint 3 // 3
@@ -1226,7 +1206,7 @@ bytec_2 // "highest_bid"
 app_global_get
 intc_0 // 0
 >
-bz timeout_18_l2
+bz timeout_17_l2
 itxn_next
 intc_1 // pay
 itxn_field TypeEnum
@@ -1238,7 +1218,7 @@ app_global_get
 itxn_field Receiver
 intc_0 // 0
 itxn_field Fee
-timeout_18_l2:
+timeout_17_l2:
 itxn_submit
 bytec_0 // "state"
 intc_0 // 0

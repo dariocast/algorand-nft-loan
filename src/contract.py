@@ -91,14 +91,12 @@ class BorrowMyNFT(Application):
             ),
         )
 
-    # Add an external method with ABI method signature `hello(string)string`
+    # Add an external method with ABI method signature `health(string)string`
     @external
     def health(self, *, output: abi.String):
-        # Set output to the result of `Hello, `+name
+        """Returns the contract health"""
         return output.set(
-            Bytes(
-                f"Contract {Global.current_application_id()} is up and running"
-            )
+            Bytes("Contract is up and running!")
         )
 
     @internal
@@ -232,7 +230,7 @@ class BorrowMyNFT(Application):
 
             self.state.set(Int(1)),
             self.auction_base.set(auction_base.get()),
-            self.auction_period.set(Add(Global.round(), auction_period.get())),
+            self.auction_period.set(auction_period.get()),
             self.payback_deadline.set(payback_deadline.get()),
             self.borrower_address.set(Txn.sender())
         )
@@ -264,19 +262,21 @@ class BorrowMyNFT(Application):
     @external
     def accept_bid(self):
         return Seq(
-            Assert(Ge(Txn.fee(), Mul(Global.min_txn_fee(), Int(2)))),
-            Assert(Eq(Txn.sender(), self.borrower_address)),
-            Assert(Gt(self.highest_bid, Int(0))),
-            Assert(Gt(self.state, Int(1))),
+            Assert(
+                Txn.fee() >= Global.min_txn_fee() * Int(2),
+                Txn.sender() == self.borrower_address.get(),
+                self.highest_bid.get() > Int(0),
+                self.state.get() == Int(1),
+            ),
             self.state.set(Int(2)),
-            self.debt_left.set(self.highest_bid),
+            self.debt_left.set(self.highest_bid.get()),
             self.last_interest_update_block.set(Global.round()),
-            self.payback_deadline.set(Add(Global.round(), self.payback_deadline)),
+            self.payback_deadline.set(Add(Global.round(), self.payback_deadline.get())),
             InnerTxnBuilder.Execute(
                 {
                     TxnField.type_enum: TxnType.Payment,
-                    TxnField.amount: Minus(self.highest_bid, Div(self.highest_bid, self.INTEREST_RATE_CONTRACT_DEN)),
-                    TxnField.receiver: self.borrower_address,
+                    TxnField.amount: Minus(self.highest_bid.get(), Div(self.highest_bid.get(), self.INTEREST_RATE_CONTRACT_DEN)),
+                    TxnField.receiver: self.borrower_address.get(),
                     TxnField.fee: Int(0)
                 })
         )
@@ -344,22 +344,22 @@ class BorrowMyNFT(Application):
     @external
     def pay_back(self, payment: abi.PaymentTransaction):
         # interest=debt_left*INTEREST_RATE_NUM*blocks/INTEREST_RATE_DEN. Notice: INTEREST_RATE_NUM=1
-        interest = Div(Mul(self.debt_left, Minus(Global.round(), self.last_interest_update_block)),
+        interest = Div(Mul(self.debt_left.get(), Minus(Global.round(), self.last_interest_update_block.get())),
                        self.INTEREST_RATE_DEN)
         return Seq(
             Assert(Global.group_size() == Int(2)),
             Assert(Ge(Txn.fee(), Mul(Global.min_txn_fee(), Int(3)))),
-            Assert(Eq(self.state, Int(2))),
+            Assert(Eq(self.state.get(), Int(2))),
             Assert(payment.get().receiver() == self.address),
             Assert(Ge(payment.get().amount(), interest)),
-            self.debt_left.set(Add(self.debt_left, interest)),
+            self.debt_left.set(Add(self.debt_left.get(), interest)),
             self.last_interest_update_block.set(Global.round()),
-            If(Gt(payment.get().amount(), self.debt_left)).Then(Seq(
+            If(Gt(payment.get().amount(), self.debt_left.get())).Then(Seq(
                 InnerTxnBuilder.Begin(),
                 InnerTxnBuilder.SetFields(
                     {
                         TxnField.type_enum: TxnType.Payment,
-                        TxnField.amount: Minus(payment.get().amount(), self.debt_left),
+                        TxnField.amount: Minus(payment.get().amount(), self.debt_left.get()),
                         TxnField.receiver: Txn.sender(),
                         TxnField.fee: Int(0)
                     }),
@@ -367,37 +367,37 @@ class BorrowMyNFT(Application):
                 InnerTxnBuilder.SetFields(
                     {
                         TxnField.type_enum: TxnType.Payment,
-                        TxnField.amount: self.debt_left,
-                        TxnField.receiver: self.lender_address,
+                        TxnField.amount: self.debt_left.get(),
+                        TxnField.receiver: self.lender_address.get(),
                         TxnField.fee: Int(0)
                     }),
                 InnerTxnBuilder.Next(),
                 InnerTxnBuilder.SetFields(
                     {
                         TxnField.type_enum: TxnType.AssetTransfer,
-                        TxnField.xfer_asset: self.nft_id,
+                        TxnField.xfer_asset: self.nft_id.get(),
                         TxnField.asset_amount: Int(1),
-                        TxnField.asset_receiver: self.borrower_address,
+                        TxnField.asset_receiver: self.borrower_address.get(),
                         TxnField.fee: Int(0)
                     }),
                 InnerTxnBuilder.Submit(),
                 self.reset_state()
-            )).ElseIf(Eq(payment.get().amount(), self.debt_left)).Then(Seq(
+            )).ElseIf(Eq(payment.get().amount(), self.debt_left.get())).Then(Seq(
                 InnerTxnBuilder.Begin(),
                 InnerTxnBuilder.SetFields(
                     {
                         TxnField.type_enum: TxnType.Payment,
-                        TxnField.amount: self.debt_left,
-                        TxnField.receiver: self.lender_address,
+                        TxnField.amount: self.debt_left.get(),
+                        TxnField.receiver: self.lender_address.get(),
                         TxnField.fee: Int(0)
                     }),
                 InnerTxnBuilder.Next(),
                 InnerTxnBuilder.SetFields(
                     {
                         TxnField.type_enum: TxnType.AssetTransfer,
-                        TxnField.xfer_asset: self.nft_id,
+                        TxnField.xfer_asset: self.nft_id.get(),
                         TxnField.asset_amount: Int(1),
-                        TxnField.asset_receiver: self.borrower_address,
+                        TxnField.asset_receiver: self.borrower_address.get(),
                         TxnField.fee: Int(0)
                     }),
                 InnerTxnBuilder.Submit(),
@@ -406,10 +406,10 @@ class BorrowMyNFT(Application):
                 InnerTxnBuilder.Execute({
                     TxnField.type_enum: TxnType.Payment,
                     TxnField.amount: payment.get().amount(),
-                    TxnField.receiver: self.lender_address,
+                    TxnField.receiver: self.lender_address.get(),
                     TxnField.fee: Int(0)
                 }),
-                self.debt_left.set(Minus(self.debt_left, payment.get().amount()))
+                self.debt_left.set(Minus(self.debt_left.get(), payment.get().amount()))
             ))
         )
 
