@@ -10,8 +10,11 @@ from src.tests.nft_test import nft_metadata_github_url
 from src import utils
 
 # CONSTANTS
+# NB. If you use sandbox use lower DURATIONs values (e.g. 2) else 5-10 is good for testnet
 AUCTION_DURATION = 2
 LOAN_DURATION = 2
+
+# Flag to use sandbox or not
 SANDBOX = True
 
 # Use testnet or sandbox
@@ -82,7 +85,8 @@ def scenarios():
         app_addr=app_addr,
         app_client_to_use=app_client_borrower,
         asset_id=asset_id,
-        auction_base=100
+        auction_base=100,
+        auction_duration=AUCTION_DURATION,
     )
 
     # Read state from borrower account
@@ -129,7 +133,8 @@ def scenarios():
         app_addr=app_addr,
         app_client_to_use=app_client_borrower,
         asset_id=asset_id,
-        auction_base=100
+        auction_base=100,
+        auction_duration=AUCTION_DURATION,
     )
 
     # Read state from borrower account
@@ -162,7 +167,8 @@ def scenarios():
         app_addr=app_addr,
         app_client_to_use=app_client_borrower,
         asset_id=asset_id,
-        auction_base=100
+        auction_base=100,
+        auction_duration=AUCTION_DURATION,
     )
 
     # Read state from borrower account
@@ -345,7 +351,7 @@ def place_bid(app_addr, app_client_to_use, bid_amount):
     print("Bid placed")
 
 
-def set_new_offer(app_addr, app_client_to_use, asset_id, auction_base):
+def set_new_offer(app_addr, app_client_to_use, asset_id, auction_base, auction_duration):
     print("> Borrower setting offer")
     sp = client.suggested_params()
     asset_xfer_txn = TransactionWithSigner(
@@ -360,7 +366,7 @@ def set_new_offer(app_addr, app_client_to_use, asset_id, auction_base):
     )
     current_round = client.status().get('last-round')
     print(f"Current round: {current_round}")
-    ending_auction_round = current_round + AUCTION_DURATION  # about ten minutes
+    ending_auction_round = current_round + auction_duration  # about ten minutes
     app_client_to_use.call(
         app.set_offer,
         suggested_params=sp,
