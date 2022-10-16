@@ -619,7 +619,7 @@ assert
 global Round
 bytec 8 // "payback_deadline"
 app_global_get
->
+>=
 assert
 itxn_begin
 intc_3 // axfer
@@ -1135,6 +1135,11 @@ assert
 load 18
 gtxns AssetAmount
 intc_1 // 1
+==
+assert
+load 18
+gtxns Sender
+txn Sender
 ==
 assert
 bytec_0 // "state"

@@ -179,8 +179,7 @@ class BorrowMyNFT(Application):
                 asset_xfer.get().asset_receiver() == self.address,
                 asset_xfer.get().xfer_asset() == self.nft_id.get(),
                 asset_xfer.get().asset_amount() == Int(1),
-                # TODO capire perché il seguente check fallisce, ora lascio commentato
-                # asset_xfer.get().asset_sender() == Txn.sender(),
+                asset_xfer.get().sender() == Txn.sender(),
                 self.state.get() == Int(0),
                 auction_base.get() > Int(0),
                 auction_period.get() > Global.round(),
