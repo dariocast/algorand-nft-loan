@@ -1,5 +1,5 @@
 #pragma version 7
-intcblock 0 1 2 4 100000 1000000
+intcblock 0 1 2 4 1000000
 bytecblock 0x7374617465 0x626f72726f7765725f61646472657373 0x646562745f6c656674 0x686967686573745f626964 0x6c656e6465725f61646472657373 0x 0x6e66745f6964 0x6c6173745f696e7465726573745f7570646174655f626c6f636b 0x7061796261636b5f646561646c696e65 0x61756374696f6e5f706572696f64 0x61756374696f6e5f62617365 0x151f7c75
 txn NumAppArgs
 intc_0 // 0
@@ -384,11 +384,9 @@ intc_0 // 0
 assert
 global CurrentApplicationAddress
 balance
-intc 4 // 100000
-global MinTxnFee
-+
->
-bz delete_2_l2
+intc_0 // 0
+!=
+assert
 txn Fee
 global MinTxnFee
 intc_2 // 2
@@ -399,12 +397,6 @@ bytec_0 // "state"
 app_global_get
 intc_1 // 1
 !=
-assert
-global CurrentApplicationAddress
-balance
-global CurrentApplicationAddress
-min_balance
->
 assert
 itxn_begin
 intc_1 // pay
@@ -420,7 +412,6 @@ itxn_field Amount
 intc_0 // 0
 itxn_field Fee
 itxn_submit
-delete_2_l2:
 retsub
 
 // auth_only
@@ -705,7 +696,7 @@ bytec 7 // "last_interest_update_block"
 app_global_get
 -
 *
-intc 5 // 1000000
+intc 4 // 1000000
 /
 >=
 assert
@@ -719,7 +710,7 @@ bytec 7 // "last_interest_update_block"
 app_global_get
 -
 *
-intc 5 // 1000000
+intc 4 // 1000000
 /
 +
 app_global_put
@@ -899,6 +890,12 @@ txn Sender
 callsub authonly_3
 // unauthorized
 assert
+global CurrentApplicationAddress
+balance
+global CurrentApplicationAddress
+min_balance
+>
+assert
 txn Fee
 global MinTxnFee
 intc_2 // 2
@@ -909,12 +906,6 @@ bytec_0 // "state"
 app_global_get
 intc_1 // 1
 !=
-assert
-global CurrentApplicationAddress
-balance
-global CurrentApplicationAddress
-min_balance
->
 assert
 itxn_begin
 intc_1 // pay
@@ -944,12 +935,6 @@ bytec_0 // "state"
 app_global_get
 intc_1 // 1
 !=
-assert
-global CurrentApplicationAddress
-balance
-global CurrentApplicationAddress
-min_balance
->
 assert
 itxn_begin
 intc_1 // pay
@@ -1061,7 +1046,7 @@ global CurrentApplicationAddress
 assert
 load 17
 gtxns Amount
-intc 4 // 100000
+pushint 100000 // 100000
 >=
 assert
 itxn_begin

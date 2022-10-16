@@ -84,11 +84,11 @@ class BorrowMyNFT(Application):
     def delete(self):
         """Enable deletion only if state is 0 = initial"""
         return Seq(
-            Assert(self.state == Int(0)),
-            If(
-                Balance(self.address) > (self.MIN_BAL + self.FEE),
-                self.pay_me_internal(),
+            Assert(
+                self.state == Int(0),
+                Balance(self.address) != Int(0),
             ),
+            self.pay_me_internal(),
         )
 
     # Add an external method with ABI method signature `health(string)string`
@@ -120,7 +120,6 @@ class BorrowMyNFT(Application):
             Assert(
                 Txn.fee() >= Global.min_txn_fee() * Int(2),
                 self.state.get() != Int(1),
-                Balance(self.address) > MinBalance(self.address)
             ),
             InnerTxnBuilder.Execute({
                 TxnField.type_enum: TxnType.Payment,
@@ -132,7 +131,12 @@ class BorrowMyNFT(Application):
 
     @external(authorize=Authorize.only(Global.creator_address()))
     def pay_me(self):
-        return self.pay_me_internal()
+        return Seq(
+            Assert(
+                Balance(self.address) > MinBalance(self.address)
+            ),
+            self.pay_me_internal()
+        )
 
     # 2 transactions are needed: one to transfer algo and increase the contract balance (the contract minimum balance
     # must be sufficient to accept the nft), one to optin

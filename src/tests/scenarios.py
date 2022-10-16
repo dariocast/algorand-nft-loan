@@ -28,15 +28,10 @@ lender_account = accounts.pop()
 # Create instance of the BorrowMyNFT contract
 app = BorrowMyNFT()
 
-app_id = 116542827
-app_addr = "X6SDF6A54N2SHHZCTGIE35XQ4O4QAFZY4CSNWGVXTZ2QOMRW4JOUSXGHVQ"
-asset_id = 116542875
-
 # Create an Application client for event creator containing both an algod client and the app
 app_client = ApplicationClient(
     client,
     app,
-    app_id=app_id,
     signer=contract_owner_account.signer
 )
 
@@ -61,7 +56,7 @@ def scenarios():
     app_client.fund(1 * consts.algo)
     print(f"Contract Balance: {client.account_info(app_addr).get('amount')} microAlgos \n")
 
-    print(">>> SCENARIO 1: Loan complete flow ###\n")
+    print(">>> SCENARIO 1: Loan complete flow <<<\n")
     app_client_borrower = app_client.prepare(
         signer=borrower_account.signer
     )
@@ -241,9 +236,6 @@ def scenarios():
         print("Contract deleted")
     except LogicException as e:
         print(f"Logic Exception: {e}")
-
-    # Read state from owner account
-    read_global_state(app_client)
 
     print("### END ###\n")
 
