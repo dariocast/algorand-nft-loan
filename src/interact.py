@@ -7,7 +7,7 @@ from beaker.client import ApplicationClient, LogicException
 
 from src.utils import create_default_nft
 from src.contract import BorrowMyNFT
-from src.tests.nft_test import nft_metadata_github_url
+from src.utils import nft_metadata_github_url
 
 
 

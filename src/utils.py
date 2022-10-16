@@ -21,6 +21,8 @@ mnemonics = [
     "material tower kiss tower chimney remind kind lottery pill soldier december pretty list denial donate admit post tonight govern pledge hand old oblige ability other",
 ]
 
+nft_metadata_github_url = "https://raw.githubusercontent.com/dariocast/algorand-nft-loan/main/assets/nft_metadata.json"
+
 def wait_for_round(client, round_to_wait_for):
     last_round = client.status().get('last-round')
     print(f"Waiting for round {round_to_wait_for}")
