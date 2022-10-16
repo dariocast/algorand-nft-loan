@@ -1,6 +1,6 @@
 #pragma version 7
 intcblock 0 1 2 4 100000 1000000
-bytecblock 0x7374617465 0x646562745f6c656674 0x686967686573745f626964 0x6c656e6465725f61646472657373 0x626f72726f7765725f61646472657373 0x 0x6e66745f6964 0x6c6173745f696e7465726573745f7570646174655f626c6f636b 0x7061796261636b5f646561646c696e65 0x61756374696f6e5f706572696f64 0x61756374696f6e5f62617365 0x151f7c75
+bytecblock 0x7374617465 0x626f72726f7765725f61646472657373 0x646562745f6c656674 0x686967686573745f626964 0x6c656e6465725f61646472657373 0x 0x6e66745f6964 0x6c6173745f696e7465726573745f7570646174655f626c6f636b 0x7061796261636b5f646561646c696e65 0x61756374696f6e5f706572696f64 0x61756374696f6e5f62617365 0x151f7c75
 txn NumAppArgs
 intc_0 // 0
 ==
@@ -339,19 +339,19 @@ app_global_put
 bytec 9 // "auction_period"
 intc_0 // 0
 app_global_put
-bytec 4 // "borrower_address"
+bytec_1 // "borrower_address"
 bytec 5 // ""
 app_global_put
-bytec_1 // "debt_left"
+bytec_2 // "debt_left"
 intc_0 // 0
 app_global_put
-bytec_2 // "highest_bid"
+bytec_3 // "highest_bid"
 intc_0 // 0
 app_global_put
 bytec 7 // "last_interest_update_block"
 intc_0 // 0
 app_global_put
-bytec_3 // "lender_address"
+bytec 4 // "lender_address"
 bytec 5 // ""
 app_global_put
 bytec 6 // "nft_id"
@@ -438,11 +438,11 @@ intc_2 // 2
 >=
 assert
 txn Sender
-bytec 4 // "borrower_address"
+bytec_1 // "borrower_address"
 app_global_get
 ==
 assert
-bytec_2 // "highest_bid"
+bytec_3 // "highest_bid"
 app_global_get
 intc_0 // 0
 >
@@ -455,8 +455,8 @@ assert
 bytec_0 // "state"
 intc_2 // 2
 app_global_put
-bytec_1 // "debt_left"
-bytec_2 // "highest_bid"
+bytec_2 // "debt_left"
+bytec_3 // "highest_bid"
 app_global_get
 app_global_put
 bytec 7 // "last_interest_update_block"
@@ -471,15 +471,15 @@ app_global_put
 itxn_begin
 intc_1 // pay
 itxn_field TypeEnum
-bytec_2 // "highest_bid"
+bytec_3 // "highest_bid"
 app_global_get
-bytec_2 // "highest_bid"
+bytec_3 // "highest_bid"
 app_global_get
 pushint 100 // 100
 /
 -
 itxn_field Amount
-bytec 4 // "borrower_address"
+bytec_1 // "borrower_address"
 app_global_get
 itxn_field Receiver
 intc_0 // 0
@@ -490,7 +490,7 @@ retsub
 // cancel_offer
 canceloffer_5:
 txn Sender
-bytec 4 // "borrower_address"
+bytec_1 // "borrower_address"
 app_global_get
 ==
 assert
@@ -511,12 +511,15 @@ itxn_field TypeEnum
 bytec 6 // "nft_id"
 app_global_get
 itxn_field XferAsset
-bytec 4 // "borrower_address"
+bytec_1 // "borrower_address"
+app_global_get
+itxn_field AssetReceiver
+bytec_1 // "borrower_address"
 app_global_get
 itxn_field AssetCloseTo
 intc_0 // 0
 itxn_field Fee
-bytec_2 // "highest_bid"
+bytec_3 // "highest_bid"
 app_global_get
 intc_0 // 0
 >
@@ -524,20 +527,20 @@ bz canceloffer_5_l2
 itxn_next
 intc_1 // pay
 itxn_field TypeEnum
-bytec_2 // "highest_bid"
+bytec_3 // "highest_bid"
 app_global_get
 itxn_field Amount
-bytec_3 // "lender_address"
+bytec 4 // "lender_address"
 app_global_get
 itxn_field Receiver
 intc_0 // 0
 itxn_field Fee
-itxn_submit
 canceloffer_5_l2:
+itxn_submit
 bytec_0 // "state"
 intc_0 // 0
 app_global_put
-bytec_1 // "debt_left"
+bytec_2 // "debt_left"
 intc_0 // 0
 app_global_put
 bytec 7 // "last_interest_update_block"
@@ -552,13 +555,13 @@ app_global_put
 bytec 10 // "auction_base"
 intc_0 // 0
 app_global_put
-bytec_2 // "highest_bid"
+bytec_3 // "highest_bid"
 intc_0 // 0
 app_global_put
-bytec_3 // "lender_address"
+bytec 4 // "lender_address"
 bytec 5 // ""
 app_global_put
-bytec 4 // "borrower_address"
+bytec_1 // "borrower_address"
 bytec 5 // ""
 app_global_put
 bytec 6 // "nft_id"
@@ -601,7 +604,7 @@ retsub
 // loan_expired
 loanexpired_8:
 txn Sender
-bytec_3 // "lender_address"
+bytec 4 // "lender_address"
 app_global_get
 ==
 assert
@@ -629,16 +632,19 @@ app_global_get
 itxn_field XferAsset
 intc_1 // 1
 itxn_field AssetAmount
-bytec_3 // "lender_address"
+bytec 4 // "lender_address"
 app_global_get
 itxn_field AssetReceiver
+bytec 4 // "lender_address"
+app_global_get
+itxn_field AssetCloseTo
 intc_0 // 0
 itxn_field Fee
 itxn_submit
 bytec_0 // "state"
 intc_0 // 0
 app_global_put
-bytec_1 // "debt_left"
+bytec_2 // "debt_left"
 intc_0 // 0
 app_global_put
 bytec 7 // "last_interest_update_block"
@@ -653,13 +659,13 @@ app_global_put
 bytec 10 // "auction_base"
 intc_0 // 0
 app_global_put
-bytec_2 // "highest_bid"
+bytec_3 // "highest_bid"
 intc_0 // 0
 app_global_put
-bytec_3 // "lender_address"
+bytec 4 // "lender_address"
 bytec 5 // ""
 app_global_put
-bytec 4 // "borrower_address"
+bytec_1 // "borrower_address"
 bytec 5 // ""
 app_global_put
 bytec 6 // "nft_id"
@@ -692,7 +698,7 @@ global CurrentApplicationAddress
 assert
 load 14
 gtxns Amount
-bytec_1 // "debt_left"
+bytec_2 // "debt_left"
 app_global_get
 global Round
 bytec 7 // "last_interest_update_block"
@@ -703,10 +709,10 @@ intc 5 // 1000000
 /
 >=
 assert
-bytec_1 // "debt_left"
-bytec_1 // "debt_left"
+bytec_2 // "debt_left"
+bytec_2 // "debt_left"
 app_global_get
-bytec_1 // "debt_left"
+bytec_2 // "debt_left"
 app_global_get
 global Round
 bytec 7 // "last_interest_update_block"
@@ -722,13 +728,13 @@ global Round
 app_global_put
 load 14
 gtxns Amount
-bytec_1 // "debt_left"
+bytec_2 // "debt_left"
 app_global_get
 >
 bnz payback_9_l4
 load 14
 gtxns Amount
-bytec_1 // "debt_left"
+bytec_2 // "debt_left"
 app_global_get
 ==
 bnz payback_9_l3
@@ -738,14 +744,14 @@ itxn_field TypeEnum
 load 14
 gtxns Amount
 itxn_field Amount
-bytec_3 // "lender_address"
+bytec 4 // "lender_address"
 app_global_get
 itxn_field Receiver
 intc_0 // 0
 itxn_field Fee
 itxn_submit
-bytec_1 // "debt_left"
-bytec_1 // "debt_left"
+bytec_2 // "debt_left"
+bytec_2 // "debt_left"
 app_global_get
 load 14
 gtxns Amount
@@ -756,10 +762,10 @@ payback_9_l3:
 itxn_begin
 intc_1 // pay
 itxn_field TypeEnum
-bytec_1 // "debt_left"
+bytec_2 // "debt_left"
 app_global_get
 itxn_field Amount
-bytec_3 // "lender_address"
+bytec 4 // "lender_address"
 app_global_get
 itxn_field Receiver
 intc_0 // 0
@@ -772,16 +778,19 @@ app_global_get
 itxn_field XferAsset
 intc_1 // 1
 itxn_field AssetAmount
-bytec 4 // "borrower_address"
+bytec_1 // "borrower_address"
 app_global_get
 itxn_field AssetReceiver
+bytec_1 // "borrower_address"
+app_global_get
+itxn_field AssetCloseTo
 intc_0 // 0
 itxn_field Fee
 itxn_submit
 bytec_0 // "state"
 intc_0 // 0
 app_global_put
-bytec_1 // "debt_left"
+bytec_2 // "debt_left"
 intc_0 // 0
 app_global_put
 bytec 7 // "last_interest_update_block"
@@ -796,13 +805,13 @@ app_global_put
 bytec 10 // "auction_base"
 intc_0 // 0
 app_global_put
-bytec_2 // "highest_bid"
+bytec_3 // "highest_bid"
 intc_0 // 0
 app_global_put
-bytec_3 // "lender_address"
+bytec 4 // "lender_address"
 bytec 5 // ""
 app_global_put
-bytec 4 // "borrower_address"
+bytec_1 // "borrower_address"
 bytec 5 // ""
 app_global_put
 bytec 6 // "nft_id"
@@ -815,7 +824,7 @@ intc_1 // pay
 itxn_field TypeEnum
 load 14
 gtxns Amount
-bytec_1 // "debt_left"
+bytec_2 // "debt_left"
 app_global_get
 -
 itxn_field Amount
@@ -826,10 +835,10 @@ itxn_field Fee
 itxn_next
 intc_1 // pay
 itxn_field TypeEnum
-bytec_1 // "debt_left"
+bytec_2 // "debt_left"
 app_global_get
 itxn_field Amount
-bytec_3 // "lender_address"
+bytec 4 // "lender_address"
 app_global_get
 itxn_field Receiver
 intc_0 // 0
@@ -842,16 +851,19 @@ app_global_get
 itxn_field XferAsset
 intc_1 // 1
 itxn_field AssetAmount
-bytec 4 // "borrower_address"
+bytec_1 // "borrower_address"
 app_global_get
 itxn_field AssetReceiver
+bytec_1 // "borrower_address"
+app_global_get
+itxn_field AssetCloseTo
 intc_0 // 0
 itxn_field Fee
 itxn_submit
 bytec_0 // "state"
 intc_0 // 0
 app_global_put
-bytec_1 // "debt_left"
+bytec_2 // "debt_left"
 intc_0 // 0
 app_global_put
 bytec 7 // "last_interest_update_block"
@@ -866,13 +878,13 @@ app_global_put
 bytec 10 // "auction_base"
 intc_0 // 0
 app_global_put
-bytec_2 // "highest_bid"
+bytec_3 // "highest_bid"
 intc_0 // 0
 app_global_put
-bytec_3 // "lender_address"
+bytec 4 // "lender_address"
 bytec 5 // ""
 app_global_put
-bytec 4 // "borrower_address"
+bytec_1 // "borrower_address"
 bytec 5 // ""
 app_global_put
 bytec 6 // "nft_id"
@@ -980,7 +992,7 @@ global CurrentApplicationAddress
 assert
 load 15
 gtxns Amount
-bytec_2 // "highest_bid"
+bytec_3 // "highest_bid"
 app_global_get
 >
 assert
@@ -1000,7 +1012,7 @@ bytec 9 // "auction_period"
 app_global_get
 <=
 assert
-bytec_2 // "highest_bid"
+bytec_3 // "highest_bid"
 app_global_get
 intc_0 // 0
 >
@@ -1008,21 +1020,21 @@ bz placebid_12_l2
 itxn_begin
 intc_1 // pay
 itxn_field TypeEnum
-bytec_2 // "highest_bid"
+bytec_3 // "highest_bid"
 app_global_get
 itxn_field Amount
-bytec_3 // "lender_address"
+bytec 4 // "lender_address"
 app_global_get
 itxn_field Receiver
 intc_0 // 0
 itxn_field Fee
 itxn_submit
 placebid_12_l2:
-bytec_2 // "highest_bid"
+bytec_3 // "highest_bid"
 load 15
 gtxns Amount
 app_global_put
-bytec_3 // "lender_address"
+bytec 4 // "lender_address"
 load 15
 gtxns Sender
 app_global_put
@@ -1078,7 +1090,7 @@ resetstate_15:
 bytec_0 // "state"
 intc_0 // 0
 app_global_put
-bytec_1 // "debt_left"
+bytec_2 // "debt_left"
 intc_0 // 0
 app_global_put
 bytec 7 // "last_interest_update_block"
@@ -1093,13 +1105,13 @@ app_global_put
 bytec 10 // "auction_base"
 intc_0 // 0
 app_global_put
-bytec_2 // "highest_bid"
+bytec_3 // "highest_bid"
 intc_0 // 0
 app_global_put
-bytec_3 // "lender_address"
+bytec 4 // "lender_address"
 bytec 5 // ""
 app_global_put
-bytec 4 // "borrower_address"
+bytec_1 // "borrower_address"
 bytec 5 // ""
 app_global_put
 bytec 6 // "nft_id"
@@ -1171,7 +1183,7 @@ app_global_put
 bytec 8 // "payback_deadline"
 load 21
 app_global_put
-bytec 4 // "borrower_address"
+bytec_1 // "borrower_address"
 txn Sender
 app_global_put
 retsub
@@ -1202,12 +1214,15 @@ app_global_get
 itxn_field XferAsset
 intc_1 // 1
 itxn_field AssetAmount
-bytec 4 // "borrower_address"
+bytec_1 // "borrower_address"
 app_global_get
 itxn_field AssetReceiver
+bytec_1 // "borrower_address"
+app_global_get
+itxn_field AssetCloseTo
 intc_0 // 0
 itxn_field Fee
-bytec_2 // "highest_bid"
+bytec_3 // "highest_bid"
 app_global_get
 intc_0 // 0
 >
@@ -1215,10 +1230,10 @@ bz timeout_17_l2
 itxn_next
 intc_1 // pay
 itxn_field TypeEnum
-bytec_2 // "highest_bid"
+bytec_3 // "highest_bid"
 app_global_get
 itxn_field Amount
-bytec_3 // "lender_address"
+bytec 4 // "lender_address"
 app_global_get
 itxn_field Receiver
 intc_0 // 0
@@ -1228,7 +1243,7 @@ itxn_submit
 bytec_0 // "state"
 intc_0 // 0
 app_global_put
-bytec_1 // "debt_left"
+bytec_2 // "debt_left"
 intc_0 // 0
 app_global_put
 bytec 7 // "last_interest_update_block"
@@ -1243,13 +1258,13 @@ app_global_put
 bytec 10 // "auction_base"
 intc_0 // 0
 app_global_put
-bytec_2 // "highest_bid"
+bytec_3 // "highest_bid"
 intc_0 // 0
 app_global_put
-bytec_3 // "lender_address"
+bytec 4 // "lender_address"
 bytec 5 // ""
 app_global_put
-bytec 4 // "borrower_address"
+bytec_1 // "borrower_address"
 bytec 5 // ""
 app_global_put
 bytec 6 // "nft_id"

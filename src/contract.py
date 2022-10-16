@@ -268,6 +268,7 @@ class BorrowMyNFT(Application):
                     TxnField.xfer_asset: self.nft_id,
                     TxnField.asset_amount: Int(1),
                     TxnField.asset_receiver: self.borrower_address,
+                    TxnField.asset_close_to: self.borrower_address,
                     TxnField.fee: Int(0)
                 }),
             If(Gt(self.highest_bid, Int(0))).Then(Seq(
@@ -297,6 +298,7 @@ class BorrowMyNFT(Application):
                 {
                     TxnField.type_enum: TxnType.AssetTransfer,
                     TxnField.xfer_asset: self.nft_id.get(),
+                    TxnField.asset_receiver: self.borrower_address.get(),
                     TxnField.asset_close_to: self.borrower_address.get(),
                     TxnField.fee: Int(0),
                 }
@@ -310,8 +312,8 @@ class BorrowMyNFT(Application):
                         TxnField.receiver: self.lender_address.get(),
                         TxnField.fee: Int(0)
                     }),
-                InnerTxnBuilder.Submit(),
             )),
+            InnerTxnBuilder.Submit(),
             self.reset_state()
         )
 
@@ -352,6 +354,7 @@ class BorrowMyNFT(Application):
                         TxnField.xfer_asset: self.nft_id.get(),
                         TxnField.asset_amount: Int(1),
                         TxnField.asset_receiver: self.borrower_address.get(),
+                        TxnField.asset_close_to: self.borrower_address.get(),
                         TxnField.fee: Int(0)
                     }),
                 InnerTxnBuilder.Submit(),
@@ -372,6 +375,7 @@ class BorrowMyNFT(Application):
                         TxnField.xfer_asset: self.nft_id.get(),
                         TxnField.asset_amount: Int(1),
                         TxnField.asset_receiver: self.borrower_address.get(),
+                        TxnField.asset_close_to: self.borrower_address.get(),
                         TxnField.fee: Int(0)
                     }),
                 InnerTxnBuilder.Submit(),
@@ -402,6 +406,7 @@ class BorrowMyNFT(Application):
                     TxnField.xfer_asset: self.nft_id.get(),
                     TxnField.asset_amount: Int(1),
                     TxnField.asset_receiver: self.lender_address.get(),
+                    TxnField.asset_close_to: self.lender_address.get(),
                     TxnField.fee: Int(0)
                 }),
             self.reset_state()

@@ -55,16 +55,16 @@ def opt_in_to_asset(client: algod.AlgodClient, account: SandboxAccount | Account
         # Send the transaction to the network and retrieve the txid.
         try:
             txid = client.send_transaction(stxn)
-            print("Signed transaction with txID: {}".format(txid))
+            # print("Signed transaction with txID: {}".format(txid))
             # Wait for the transaction to be confirmed
             confirmed_txn = transaction.wait_for_confirmation(client, txid, 4)
-            print("TXID: ", txid)
-            print("Result confirmed in round: {}".format(confirmed_txn['confirmed-round']))
+            # print("TXID: ", txid)
+            # print("Result confirmed in round: {}".format(confirmed_txn['confirmed-round']))
         except Exception as err:
             print(err)
         # Now check the asset holding for that account.
         # This should now show a holding with a balance of 0.
-        print_asset_holding(client, account.address, asset_id)
+        # print_asset_holding(client, account.address, asset_id)
 
 
 #   Utility function used to print asset holding for account and assetid
