@@ -255,20 +255,23 @@ class BorrowMyNFT(Application):
                 })
         )
 
+    # TODO: Maybe a fifferent flow for borrower and lender is needed
+    # TODO: check if the lender is the one who called the contract, than remove only highest bid maybe
+    # TODO: check if the borrower is the one who called the contract, than do this
     @external
     def timeout(self):
         return Seq(
             Assert(Ge(Txn.fee(), Mul(Global.min_txn_fee(), Int(3)))),
             Assert(Eq(self.state, Int(1))),
-            Assert(Gt(Global.round(), self.auction_period)),
+            Assert(Gt(Global.round(), self.auction_period.get())),
             InnerTxnBuilder.Begin(),
             InnerTxnBuilder.SetFields(
                 {
                     TxnField.type_enum: TxnType.AssetTransfer,
-                    TxnField.xfer_asset: self.nft_id,
+                    TxnField.xfer_asset: self.nft_id.get(),
                     TxnField.asset_amount: Int(1),
-                    TxnField.asset_receiver: self.borrower_address,
-                    TxnField.asset_close_to: self.borrower_address,
+                    TxnField.asset_receiver: self.borrower_address.get(),
+                    TxnField.asset_close_to: self.borrower_address.get(),
                     TxnField.fee: Int(0)
                 }),
             If(Gt(self.highest_bid, Int(0))).Then(Seq(
@@ -276,8 +279,8 @@ class BorrowMyNFT(Application):
                 InnerTxnBuilder.SetFields(
                     {
                         TxnField.type_enum: TxnType.Payment,
-                        TxnField.amount: self.highest_bid,
-                        TxnField.receiver: self.lender_address,
+                        TxnField.amount: self.highest_bid.get(),
+                        TxnField.receiver: self.lender_address.get(),
                         TxnField.fee: Int(0)
                     })
             )),
