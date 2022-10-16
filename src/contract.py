@@ -158,7 +158,6 @@ class BorrowMyNFT(Application):
                 }
             ),
             self.initialize_account_state(),
-            self.nft_id.set(nft.asset_id()),
         )
 
     # 2 transactions are checked:
@@ -172,12 +171,15 @@ class BorrowMyNFT(Application):
             auction_period: abi.Uint64,
             payback_deadline: abi.Uint64
     ):
+        asset_holding = AssetHolding.balance(
+            Global.current_application_address(), asset_xfer.get().xfer_asset()
+        )
         return Seq(
+            asset_holding,
             Assert(
                 Global.group_size() == Int(2),
                 # check asset transfer is correct
                 asset_xfer.get().asset_receiver() == self.address,
-                asset_xfer.get().xfer_asset() == self.nft_id.get(),
                 asset_xfer.get().asset_amount() == Int(1),
                 asset_xfer.get().sender() == Txn.sender(),
                 self.state.get() == Int(0),
@@ -200,6 +202,7 @@ class BorrowMyNFT(Application):
             # AssetAmount must be 1
 
             self.state.set(Int(1)),
+            self.nft_id.set(asset_xfer.get().xfer_asset()),
             self.auction_base.set(auction_base.get()),
             self.auction_period.set(auction_period.get()),
             self.payback_deadline.set(payback_deadline.get()),

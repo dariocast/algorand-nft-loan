@@ -68,7 +68,7 @@ def opt_in_to_asset(client: algod.AlgodClient, account: SandboxAccount | Account
 
 
 #   Utility function used to print asset holding for account and assetid
-def print_asset_holding(algodclient, account, assetid):
+def print_asset_holding(algodclient, account, assetid=None):
     # note: if you have an indexer instance available it is easier to just use this
     # response = myindexer.accounts(asset_id = assetid)
     # then loop thru the accounts returned and match the account you are looking for
@@ -77,7 +77,7 @@ def print_asset_holding(algodclient, account, assetid):
     for my_account_info in account_info['assets']:
         scrutinized_asset = account_info['assets'][idx]
         idx = idx + 1
-        if (scrutinized_asset['asset-id'] == assetid):
+        if not assetid or scrutinized_asset['asset-id'] == assetid:
             print("Asset ID: {}".format(scrutinized_asset['asset-id']))
             print(json.dumps(scrutinized_asset, indent=4))
             break

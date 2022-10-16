@@ -122,6 +122,7 @@ def scenarios():
         auction_base=100,  # milliAlgos, 0.1 Algo
         auction_period=ending_auction_round,  # n. of blocks
         payback_deadline=LOAN_DURATION,  # n. of blocks after accepting the offer
+        foreign_assets=[asset_id],
     )
     print("- Offer set")
 
@@ -213,6 +214,7 @@ def scenarios():
     # Lender must optin to asset
     print("\t- Lender opting in to NFT to receive it")
     utils.opt_in_to_asset(client, lender_account, asset_id)
+    print("\t- Lender opted in to NFT")
     sp = client.suggested_params()
     sp.flat_fee = True
     sp.fee = 2000
@@ -221,6 +223,8 @@ def scenarios():
         suggested_params=sp,
         foreign_assets=[asset_id],
     )
+    print("- Lender now holds:")
+    utils.print_asset_holding(client, lender_account.address, asset_id)
     print("- NFT claimed")
 
     # Read accounts balances
