@@ -5,7 +5,7 @@ from algosdk.future import transaction
 from beaker import sandbox, consts
 from beaker.client import ApplicationClient, LogicException
 
-from src.nft import create_default_nft
+from src.utils import create_default_nft
 from src.contract import BorrowMyNFT
 from src.tests.nft_test import nft_metadata_github_url
 

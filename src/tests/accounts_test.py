@@ -1,13 +1,15 @@
 from beaker import sandbox
 
-from src.utils.accounts import *
-from src.utils.client import *
+from src import utils
+from src.utils import mnemonics
 
 
 def internal_accounts():
-    private_key, my_address = get_default_algorand_keypair()
-    algod_client = get_algod_client(private_key, my_address)
-    account_info = check_balance(algod_client, my_address)
+    my_private_key = utils.get_private_key_from_mnemonic(mnemonics[0])
+    my_address = utils.get_address_from_private_key(my_private_key)
+    algod_client = utils.get_algod_client()
+    account_info = utils.check_balance(algod_client, my_address)
+
 
 def sandbox_accounts():
     # get accounts from sandbox

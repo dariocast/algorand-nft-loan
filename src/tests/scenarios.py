@@ -1,22 +1,21 @@
 import json
-import logging
 
 from algosdk.future import transaction
-from algosdk.atomic_transaction_composer import TransactionWithSigner, AtomicTransactionComposer
-from beaker import sandbox, consts
+from algosdk.atomic_transaction_composer import TransactionWithSigner
+from beaker import consts
 from beaker.client import ApplicationClient, LogicException
 
 from src.contract import BorrowMyNFT
-from src.nft import create_default_nft
+from src.utils import create_default_nft
 from src.tests.nft_test import nft_metadata_github_url
-from src.utils import utils
+from src import utils
 
 # CONSTANTS
-AUCTION_DURATION=2
-LOAN_DURATION=1
+AUCTION_DURATION=5
+LOAN_DURATION=5
 
-client = sandbox.get_algod_client()
-accounts = sandbox.get_accounts()
+client = utils.get_algod_client()
+accounts = utils.get_testnet_account()
 
 contract_owner_account = accounts.pop()
 borrower_account = accounts.pop()
@@ -25,10 +24,15 @@ lender_account = accounts.pop()
 # Create instance of the BorrowMyNFT contract
 app = BorrowMyNFT()
 
+app_id = 116542827
+app_addr = "X6SDF6A54N2SHHZCTGIE35XQ4O4QAFZY4CSNWGVXTZ2QOMRW4JOUSXGHVQ"
+asset_id = 116542875
+
 # Create an Application client for event creator containing both an algod client and the app
 app_client = ApplicationClient(
     client,
     app,
+    app_id=app_id,
     signer=contract_owner_account.signer
 )
 
@@ -62,7 +66,7 @@ def scenarios():
     )
 
     print("- Borrower minting NFT")
-    asset_id = create_default_nft(sandbox.get_algod_client(), borrower_account.private_key, borrower_account.address,
+    asset_id = create_default_nft(client, borrower_account.private_key, borrower_account.address,
                                   "G3 NFT@arc3", "G3", nft_metadata_github_url)
     print("- NFT minted with asset ID: {}".format(asset_id))
 
