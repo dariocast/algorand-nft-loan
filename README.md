@@ -142,7 +142,7 @@ The development of the project led to face and manage several technical challeng
 - Any Algorand Standard Assets can be received as collateral.
 - The interest is dynamically calculated on the portion of the unpaid debt
 - The debt can be repayed at any moment, in any percentage
-- Correct handing of atomic groups is reuqired
+- Correct handing of atomic groups is required
 - Multiple inner payments/asset transfers must be issued
 - Temporal parameters have to be calculated in terms of blockchain round. This led to some issue in Testnet already raised to the algorand repository that as been solved pushing arbitrary round number when needed.
 - The smart contract can be used multiple times in sequence without recreating the app. This is a gain for the contract owner.
