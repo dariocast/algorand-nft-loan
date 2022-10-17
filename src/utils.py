@@ -163,8 +163,9 @@ def create_default_nft(client, private_key, address, asset_name, asset_unit_name
     # note that the manager, reserve, freeze, and clawback
     # are all empty for the nft as specified in documentation
     # https://developer.algorand.org/docs/get-started/tokenization/nft/
-
-    f = open('../../assets/nft_metadata.json')
+    dir_path = os.path.dirname(__file__)
+    file_path = os.path.join(dir_path, '../assets/nft_metadata.json')
+    f = open(file_path)
     json_metadata = json.load(f)
     f.close()
 
