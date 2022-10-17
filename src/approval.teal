@@ -1,5 +1,5 @@
 #pragma version 7
-intcblock 0 1 2 4 1000000
+intcblock 0 1 2 4 1000000 200000000000
 bytecblock 0x7374617465 0x626f72726f7765725f61646472657373 0x646562745f6c656674 0x686967686573745f626964 0x6c656e6465725f61646472657373 0x 0x6e66745f6964 0x6c6173745f696e7465726573745f7570646174655f626c6f636b 0x7061796261636b5f646561646c696e65 0x61756374696f6e5f706572696f64 0x61756374696f6e5f62617365 0x151f7c75
 txn NumAppArgs
 intc_0 // 0
@@ -673,7 +673,7 @@ intc_2 // 2
 assert
 txn Fee
 global MinTxnFee
-pushint 3 // 3
+intc_3 // 4
 *
 >=
 assert
@@ -989,7 +989,7 @@ app_global_get
 assert
 load 15
 gtxns Amount
-pushint 200000000000 // 200000000000
+intc 5 // 200000000000
 <=
 assert
 global Round
@@ -1116,6 +1116,18 @@ gtxns XferAsset
 asset_holding_get AssetBalance
 store 23
 store 22
+intc_0 // 0
+asset_params_get AssetManager
+store 25
+store 24
+intc_0 // 0
+asset_params_get AssetClawback
+store 27
+store 26
+intc_0 // 0
+asset_params_get AssetFreeze
+store 29
+store 28
 global GroupSize
 intc_2 // 2
 ==
@@ -1135,6 +1147,23 @@ gtxns Sender
 txn Sender
 ==
 assert
+txna Assets 0
+load 18
+gtxns XferAsset
+==
+assert
+load 24
+global ZeroAddress
+==
+assert
+load 26
+global ZeroAddress
+==
+assert
+load 28
+global ZeroAddress
+==
+assert
 bytec_0 // "state"
 app_global_get
 intc_0 // 0
@@ -1144,9 +1173,25 @@ load 19
 intc_0 // 0
 >
 assert
+load 19
+intc 5 // 200000000000
+<
+assert
 load 20
-global Round
+intc_0 // 0
 >
+assert
+load 20
+pushint 216000 // 216000
+<
+assert
+load 21
+intc_0 // 0
+>
+assert
+load 21
+pushint 77760000 // 77760000
+<
 assert
 load 21
 intc_0 // 0
@@ -1163,7 +1208,9 @@ bytec 10 // "auction_base"
 load 19
 app_global_put
 bytec 9 // "auction_period"
+global Round
 load 20
++
 app_global_put
 bytec 8 // "payback_deadline"
 load 21

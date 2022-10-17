@@ -1,4 +1,6 @@
+from ast import Global
 import json
+from time import sleep
 
 from algosdk.future import transaction
 from algosdk.atomic_transaction_composer import TransactionWithSigner
@@ -68,7 +70,6 @@ def scenarios():
     asset_id = utils.create_default_nft(client, borrower_account.private_key, borrower_account.address,
                                   "G3 NFT@arc3", "G3", nft_metadata_github_url)
     print("NFT minted with asset ID: {}".format(asset_id))
-
     #  Providing nft info and payment to allow contract opt in
     allow_contract_to_opt_in(app_addr, app_client_borrower, asset_id)
 
@@ -116,7 +117,55 @@ def scenarios():
     print("Contract asset holdings")
     utils.print_asset_holding(client, app_addr)
 
-    print(">>> SCENARIO 2: Borrower cancel offer before auction finishes <<<\n")
+    print(">>> SCENARIO 2: Lender calls timeout as borrower is not accepting any offer <<<\n")
+
+    #  Providing nft info and payment to allow contract opt in
+    allow_contract_to_opt_in(app_addr, app_client_borrower, asset_id)
+
+    # Read state from owner account
+    read_global_state(app_client)
+
+    # Set offer
+    ending_auction_round = set_new_offer(
+        app_addr=app_addr,
+        app_client_to_use=app_client_borrower,
+        asset_id=asset_id,
+        auction_base=100,
+        auction_duration=AUCTION_DURATION,
+    )
+
+    # Read state from borrower account
+    read_global_state(app_client_borrower, "borrower")
+
+    # Lender place a higher bid
+    place_bid(app_addr, app_client_lender, bid_amount=2)
+
+    # Read state from lender account
+    read_global_state(app_client_lender, "lender")
+    while (client.status().get('last-round') < ending_auction_round+2):
+        app_client.fund(100 * consts.milli_algo)
+        print("Waiting for round ", ending_auction_round+2)
+        sleep(30)
+        print("Current round ", client.status().get('last-round'))
+
+    # Read state from lender account
+    read_global_state(app_client_lender, "lender")
+
+    # Lender invokes timeout
+    timeout(app_client_lender, asset_id, borrower_account.address)
+
+    # Read state from lender account
+    read_global_state(app_client_lender, "lender")
+
+    # Asset holdings
+    print("Borrower asset holdings")
+    utils.print_asset_holding(client, borrower_account.address)
+    print("Lender asset holdings")
+    utils.print_asset_holding(client, lender_account.address)
+    print("Contract asset holdings")
+    utils.print_asset_holding(client, app_addr)
+
+    print(">>> SCENARIO 3: Borrower cancel offer before auction finishes <<<\n")
     #  Providing nft info and payment to allow contract opt in
     allow_contract_to_opt_in(app_addr, app_client_borrower, asset_id)
 
@@ -149,7 +198,7 @@ def scenarios():
     print("Contract asset holdings")
     utils.print_asset_holding(client, app_addr)
 
-    print(">>> SCENARIO 3: Lender claim NFT after incomplete payback <<<\n")
+    print(">>> SCENARIO 4: Lender claim NFT after incomplete payback <<<\n")
 
     #  Providing nft info and payment to allow contract opt in
     allow_contract_to_opt_in(app_addr, app_client_borrower, asset_id)
@@ -206,7 +255,7 @@ def scenarios():
     print("Contract asset holdings")
     utils.print_asset_holding(client, app_addr)
 
-    print(">>> SCENARIO 4: Owner call pay me to recollect every Algo on the contract <<<\n")
+    print(">>> SCENARIO 5: Owner call pay me to recollect every Algo on the contract <<<\n")
 
     # Read contract balance
     print(f"Contract Balance before pay_me: {client.account_info(app_addr).get('amount')} microAlgos \n")
@@ -264,6 +313,19 @@ def cancel_offer(app_client_to_use, asset_id):
         foreign_assets=[asset_id],
     )
 
+def timeout(app_client_to_use, asset_id, foreign_addr):
+    print("> Cancelling offer (timeout)")
+    sp = client.suggested_params()
+    sp.flat_fee = True
+    sp.fee = 3000
+    # need passing asset id as foreign, contract search referenced id (saved in state) in that array
+    app_client_to_use.call(
+        app.timeout,
+        suggested_params=sp,
+        foreign_assets=[asset_id],
+        accounts=[foreign_addr]
+    )
+
 
 def claim_nft_after_loan_expiration(app_client_to_use, asset_id):
     print("> Lender claiming the NFT")
@@ -288,7 +350,7 @@ def pay_back(app_client_to_use, app_addr, amount_to_payback, asset_id):
     print(f"> NFT borrower paybacks {amount_to_payback} of the loan")
     sp = client.suggested_params()
     sp.flat_fee = True
-    sp.fee = 3000
+    sp.fee = 4000
     payment_txn = TransactionWithSigner(
         txn=transaction.PaymentTxn(
             sender=borrower_account.address,
@@ -364,7 +426,7 @@ def set_new_offer(app_addr, app_client_to_use, asset_id, auction_base, auction_d
         suggested_params=sp,
         asset_xfer=asset_xfer_txn,
         auction_base=auction_base,  # milliAlgos, 0.1 Algo
-        auction_period=ending_auction_round,  # n. of blocks
+        auction_period=auction_duration,  # n. of blocks
         payback_deadline=LOAN_DURATION,  # n. of blocks after accepting the offer
         foreign_assets=[asset_id],
     )
