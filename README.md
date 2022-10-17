@@ -52,7 +52,7 @@ The Stateful Smart Contract stores the following information:
 	- lender_address (current highest bidder)
 	- highest_bid (highest bid)
 	- auction_base (auction staring amount)
-	- auction_period (auction deadline block number)
+	- auction_period (auction deadline block number. The client submits a duration, the contract computes the deadline)
 	- payback_deadline (loan deadline. It initially stores the duration. It is calculated after the accept_offer is invoked)
 	- last_interest_update_block (starting block to compute the interest. It stores the block corresponding to the last successful invocation of pay_back)
 	- debt_left (current debt. debt_left=debt_left*((1+interset_rate)^(current_block - last_interest_update_block)))
@@ -73,7 +73,7 @@ B sends the NFT to the smart contract. B establishes a minimum loan threshold (`
 
 - `accept_bid ()`
 
-`accept_bid` is invokable only by B. The smart contract forwards some Algos (`n_Algos`) to B. The smart contract still owns the NFT. `cancel_offer` and `timeout` can no longer be invoked.
+`accept_bid` is invokable only by B. The smart contract keeps a small percentage of the `n_Algos` and forwards the remaining part to B. the percentage represents a service fee that CO can collect by invoking the `pay_me` function. The smart contract still owns the NFT. `cancel_offer` and `timeout` can no longer be invoked.
 
 - `timeout ()`
 
@@ -84,11 +84,11 @@ Anyone can invoke timeout to return the managed assets (`NFT, n_Algos`) to their
 
 Only B can invoke `cancel_offer`, and only if `accept_bid` is not invoked. The smart contract returns the managed assets (`NFT, n_Algos`) to their original owners. 
 
-- `pay_back (borrower_address, n_Algos)`
+- `pay_back (borrower_address, m_Algos)`
 
-B gives some Algos (`n_Algos`) to the smart contract. `pay_back` updates the current debt by summing the accumulated compound interest. `n_Algos` must repay at least the accumulated compound interest.
+B gives some Algos (`m_Algos`) to the smart contract. `pay_back` updates the current debt by summing the accumulated interest. `m_Algos` must repay at least the accumulated compound interest.
 
-If `n_Algos` exceeds B's current debt, the smart contract returns the exceeding Algos to B. The smart contract subtracts `n_Algos` from B's debt. The smart contract keeps the portion of the `n_Algos` entitled to the smart contract creators and forwards the remaining part to L.
+If `m_Algos` exceeds B's current debt, the smart contract returns the exceeding Algos to B. The smart contract subtracts `m_Algos` from B's debt. The smart contract forwards the the `m_Algos` to L.
 
 If B's debt goes to 0, the smart contract gives the NFT back to B. `pay_back` can be invoked after the loan payback deadline expires but not after `loan_expired` is invoked.
 
