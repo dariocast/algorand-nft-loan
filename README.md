@@ -36,7 +36,7 @@ The project aims to provide liquidity in terms of cryptocurrency or specific ass
 
 ### Use case
 
-The developed system can be seen as a kind of virtual pawn shop. The use case involves a user who has an asset, in this case an NFT, that he does not want to deprive himself of but at the same time has a need for cryptocurrencies. Through our smart contract, the owner of the NFT has the opportunity to receive a loan, allocated through an auction system, from a pool of potential investors using his NFT as collateral. At the end of the predetermined period of time he can then repay the debt with due interest and have his NFT back.
+The developed system can be seen as a kind of virtual pawnshop. The use case involves a user who has an asset, in this case an NFT, that he does not want to deprive himself of but at the same time has a need for cryptocurrencies. Through our smart contract, the owner of the NFT has the opportunity to receive a loan, allocated through an auction system, from a pool of potential investors using his NFT as collateral. At the end of the predetermined period of time he can then repay the debt with due interest and have his NFT back.
 
 ## Smart contract specifications
 
