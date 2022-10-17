@@ -6,10 +6,8 @@
 
 # Algorand NFT Loan System
 
-## Goal of the project
-The problem identified is the access to liquidity in terms of cryptocurrency or specific assets that could be addressed with a loan mechanism of owned NFT.
-
 ## Environment setup
+
 Create the development environment:
 1. Make sure the docker daemon is running and the docker-compose is correctly installed
 2. Connect to the network
@@ -26,59 +24,76 @@ Create the development environment:
 7. Test the environment with https://developer.algorand.org/docs/sdks/python/
 8. Install all the required packages
     * `pip install -r requirements.txt`
-    
+
+## Goal of the project
+
+The project aims to provide liquidity in terms of cryptocurrency or specific assets that could be addressed with a loan mechanism of owned NFT.
+
 ## Smart contract specifications
-The smart contract is able to accept an NFT from an account (borrower) for a period of time, storing info on the global state. During this period other accounts (lenders) are able to bid in ALGO for that NFT. At any time during this initial period, the borrower can interact with the contract to get back the NFT (in this case the bidded amount returns to the lender) or to accept the loan. In the second case, there is a predefined period of time in which the borrower must repay the loan to the lender, otherwise, after the deadline, the lender can obtain the NFT by interacting with the contract.
-So, we have two different roles:
-- The Borrower (B)
+
+Once the *contract owner* created the smart contract, it is able to accept an NFT from an account - *borrower* - for a period of time and stores info on the global state. During this period other accounts - *lenders* - are able to bid in ALGO for that NFT. At any time during this initial period, the borrower can interact with the contract to get back the NFT (in this case the bidded amount returns to the lender) or to accept the loan.
+
+In the second case, there is a predefined period of time in which the borrower must repay the loan to the lender, otherwise, after the deadline, the lender can obtain the NFT by interacting with the contract.
+
+ In the NFT loan developed there are three different roles:
+- The Contract Owner (CO)
+- The Borrower (B) 
 - The Lender (L)
 
 The Stateful Smart Contract stores the following information:
 	
-	- NFT_ID (a handle to retrieve the correct NFT)
+	- nft_id (a handle to retrieve the correct NFT)
 	- borrower_address (the address of the borrower)
-	- lender_address (current bidder)
-	- n_Algos (highest bid)
+	- lender_address (current highest bidder)
+	- highest_bid (highest bid)
 	- auction_base (auction staring amount)
-	- auction_period (number of blocks from the set_offer creation)
-	- payback_deadline (number of blocks from the bid acceptance)
+	- auction_period (auction deadline block number)
+	- payback_deadline (loan deadline. It initially stores the duration. It is calculated after the accept_offer is invoked)
 	- last_interest_update_block (starting block to compute the interest. It stores the block corresponding to the last successful invocation of pay_back)
-	- debt_left (The current debt. debt_left=debt_left*((1+interset_rate)^(current_block - last_interest_update_block)))
+	- debt_left (current debt. debt_left=debt_left*((1+interset_rate)^(current_block - last_interest_update_block)))
+	- state (current contract state)
 
-The smart contract supports the following operations.
+The smart contract supports the following operations:
+- `provide_access_to_nft(borrower_address, NFT, n_Algos)`
 
-- `set_offer (NFT, borrower_address, auction_base, auction_period, payback_deadline)`
+`provide_access_to_nft` is sent by B to the smart contract to trigger the NFT optin.
 
-B sends the NFT to the smart contract. B establishes a minimum loan threshold (auction_base), the number of blocks of the auction validity period (auction_period), and the loan payback deadline (payback_deadline), which is the number of blocks from when accept_bid is invoked. The smart contract stores B's address (borrower_address) for future ownership transfers.
+- `set_offer (borrower_address, NFT, auction_base, auction_period, payback_deadline)`
+
+B sends the NFT to the smart contract. B establishes a minimum loan threshold (`auction_base`), the number of blocks of the auction validity period (`auction_period`), and the loan payback deadline (`payback_deadline`), which is the number of blocks from when `accept_bid` is invoked. The smart contract stores B's address (`borrower_address`) for future ownership transfers.
 
 - `place_bid (lender_address, n_Algos)`
 
-place_bid is invokable only during the auction validity period. L sends some Algos (n_Algos) to the smart contract. The smart contract stores the lender's address (lender_address). The amount of Algos must be greater than the loan threshold and the current highest bid. The smart contract refunds the previous highest bid and replaces it with the new bid.
+`place_bid` is invokable only during the auction validity period. L sends some Algos (`n_Algos`) to the smart contract. The smart contract stores the lender's address (`lender_address`). The amount of Algos must be greater than the loan threshold and the current highest bid. The smart contract refunds the previous highest bid and replaces it with the new bid.
 
 - `accept_bid ()`
 
-accept_bid is invokable only by B. The smart contract forwards n_Algos to B. The smart contract still owns the NFT. cancel_offer and timeout can no longer be invoked.
+`accept_bid` is invokable only by B. The smart contract forwards some Algos (`n_Algos`) to B. The smart contract still owns the NFT. `cancel_offer` and `timeout` can no longer be invoked.
 
 - `timeout ()`
 
-timeout is invokable only after the auction ends and if accept_bid is not invoked.  
-Anyone can invoke timeout to return the managed assets (NFT, n_Algos) to their original owners. 
+`timeout` is invokable only after the auction ends and if `accept_bid` is not invoked.  
+Anyone can invoke timeout to return the managed assets (`NFT, n_Algos`) to their original owners. 
 
 - `cancel_offer ()`
 
-Only B can invoke cancel_offer, and only if accept_bid is not invoked. The smart contract returns the managed assets (NFT, n_Algos) to their original owners. 
+Only B can invoke `cancel_offer`, and only if `accept_bid` is not invoked. The smart contract returns the managed assets (`NFT, n_Algos`) to their original owners. 
 
-- `pay_back (m_Algos, current_block)`
+- `pay_back (borrower_address, n_Algos)`
 
-B gives some Algos (m_Algos) to the smart contract. pay_back updates the current debt by summing the accumulated compound interest. m_Algos must repay at least the accumulated compound interest. If m_Algos exceeds B's current debt, the smart contract returns the exceeding Algos to B. The smart contract subtracts m_Algos from B's debt. The smart contract keeps the portion of the m_Algos entitled to the smart contract creators and forwards the remaining part to L. If B's debt goes to 0, the smart contract gives the NFT back to B. pay_back can be invoked after the payback deadline expires but not after LoanExpired is invoked.
+B gives some Algos (`n_Algos`) to the smart contract. `pay_back` updates the current debt by summing the accumulated compound interest. `n_Algos` must repay at least the accumulated compound interest.
+
+If `n_Algos` exceeds B's current debt, the smart contract returns the exceeding Algos to B. The smart contract subtracts `n_Algos` from B's debt. The smart contract keeps the portion of the `n_Algos` entitled to the smart contract creators and forwards the remaining part to L.
+
+If B's debt goes to 0, the smart contract gives the NFT back to B. `pay_back` can be invoked after the loan payback deadline expires but not after `loan_expired` is invoked.
 
 - `loan_expired ()`
 
-LoanExpired can be invoked only by L after the payback deadline expires. L receives the NFT from the smart contract. pay_back cannot be invoked anymore.
+`loan_expired` can be invoked only by L after the loan payback deadline expires. L receives the NFT from the smart contract. `pay_back` cannot be invoked anymore.
 
 - `pay_me (creator_address)`
 
-pay_me can only be invoked by the creator(s) of the smart contract. pay_me sends the currently collected fees to the creator's address.
+`pay_me` can only be invoked by the creator of the smart contract. `pay_me` sends the currently collected fees to the creator's address.
 
 
 ## State of the art  
@@ -107,22 +122,24 @@ A platforms that uses this approach is:
 	* [**JPEG’d**](https://docs.jpegd.io/about-the-lending-protocol/introduction), (2022): It is a decentralized lending protocol on the Ethereum blockchain that enables NFT holders to open CDPs using their NFTs as collateral. Users mint PUSd (native stablecoin of the protocol) or pETH (native Ethereum derivative of the protocol) allowing them to obtain leverage on their NFTs. JPEG'd uses a peer to protocol lending mechanism and borrowers can set up several options during the lending step. PUSd  gets minted against every borrow position at a fixed borrow rate (2%) and burned upon closing of the position. All debt positions allow 32% of the collateral value to be drawn and liquidation occurs whether the debt/collateral ratio is 33% or higher.
 
 ## Technical challenges 
-The possibility to apply economics concept to the loan (i.e. interests).
 
-The possibility to receive specific assets instead of ALGOs.
-
-Smart contract manages group of transactions so it has to be accurate in the evaluation of them.
-
-In order to perform the payback it should use an inner payment transaction to the bidder.
-
-The temporal parameters has to be calculated in terms of blockchain round.
-
-NFT is an Algorand Standard Asset with specific configuration described in the [ARC-0003](https://arc.algorand.foundation/ARCs/arc-0003) .
+The development of the project led to face several technical challenges:
+- NFT is an Algorand Standard Asset with specific configuration described in the [ARC-0003](https://arc.algorand.foundation/ARCs/arc-0003).
+- The possibility to apply economics concept to the loan (i.e. interests).
+- The possibility to receive specific assets instead of ALGOs.
+- Smart contract manages group of transactions so it has to be accurate in the evaluation of them.
+- It should use an inner payment transaction to the bidder to perform the payback.
+- The temporal parameters has to be calculated in terms of blockchain round.
 
 ## Futures and business value
-The NFTs loan systems are geining increasing attention because they allow users to access to liquidity simply owning NFTs. A marketplace of this kind of contract on algorand could allow the interoperability between the NFT marketplace and DEFI.
-Even more, with algorand state proof this system may interact with other blockchain.
 
-## Future developments
-The initial idea involves two key players, a user who owns an NFT and would like to use it as collateral to access credit. And a counterparty willing to buy the NFT at a predefined price (chosen as the winner of an auction) who grants the minimum price in ALGO, all in exchange for repaying the loan in installments with a specified time interval and interest rate. One of the possible future developments is to enlarge the pool of potential lenders by considering splitting the NFT into several components. So that subsequently a community willing to lend cryptocurrency in exchange for fractional participation in the ownership of an NFT in case of default and alternatively the interest rate charged. 
-Another potential development is the use of stablecoin instead of classic cryptocurrencies, so that lending can be even more easily transformed into fiat currency.
+The NFTs loan systems are gaining increasing attention because they allow users to access to liquidity simply owning NFTs. A marketplace of this kind of contract on algorand could allow the interoperability between the NFT marketplace and DeFi.
+Even more, with Algorand state proof this system may interact with other blockchain.
+
+The initial idea involves two key players:
+- a user who owns an NFT and would like to use it as collateral to access credit
+- a counterparty willing to buy the NFT at a predefined price (chosen as the winner of an auction) who grants the minimum price in Algo, all in exchange for repaying the loan in installments with a specified time interval and interest rate.
+
+There are several improvements that could be developed starting from the current scenario.
+One of the possible future developments is to enlarge the pool of potential lenders by considering splitting the NFT into several components. So that subsequently a community willing to lend cryptocurrency in exchange for fractional participation in the ownership of an NFT in case of default and alternatively the interest rate charged. 
+Another potential progress is the use of stablecoin instead of classic cryptocurrencies, so that lending can be even more easily transformed into fiat currency.
