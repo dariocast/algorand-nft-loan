@@ -12,7 +12,7 @@ Create the development environment:
 1. Connect to a network
     * **Using Sandbox**
       * Make sure the docker daemon is running and the docker-compose is correctly installed
-      * If you do not have the `sandbox` cloned, follow the [Sandobox](https://github.com/algorand/sandbox) installation guidelines otherwise go to step 3. 
+      * If you do not have the `sandbox` cloned, follow the [Sandobox](https://github.com/algorand/sandbox) installation guidelines otherwise go to the next step (launch it). 
       * Launch `sandbox` with `./sendbox up dev`
     * **Using Testnet**
       * Create an account on [PureStake](https://www.purestake.com/) and get an API key
@@ -20,7 +20,7 @@ Create the development environment:
         * `ALGOD_TOKEN` with your Purestake API key
         * `ALGOD_ADDRESS` with the address of the Purestake testnet algod
 2. Clone the repo
-3. Check your python version is `>= 3.10`. You can verify it with the `python --version`
+3. Check your python version is `>= 3.10`. Verify it with the `python --version`
 4. Create the Virtual Environment
     * `pip3 install virtualenv`
     * `virtualenv venv`
