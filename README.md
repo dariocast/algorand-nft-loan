@@ -102,6 +102,8 @@ If B's debt goes to 0, the smart contract gives the NFT back to B. `pay_back` ca
 
 
 ## State of the art  
+Public attention towards NFTs has rapidly rosen in 2021, when NFT market has experienced record sales.
+In just one year, it has been [shown](https://www.mdpi.com/2227-7390/10/3/335) that NFT market increased from total daily sales of about USD 183,121 in 2020 to an average of USD 38 million at the [end of 2021]( https://nonfungible.com/market/).
 According to [DappRadar](https://dappradar.com/blog/), the third quarter of 2022 saw $3.4 billion in NFT sales. From the current trend, it is evident that the digital asset market will be as big as or even bigger than the physical asset market in the long run. In relation to this, over the last years, it was found that an increased number of cryptocurrency projects focused on building financial primitives for the NFT space.
 One of them are the lending platforms where users can borrow fungible tokens by collateralizing the loan with their NFT. 
 NFT lending platforms allow users to borrow liquid assets by using their NFTs as collateral. 
@@ -139,12 +141,12 @@ The development of the project led to face several technical challenges:
 
 ## Futures and business value
 
-The NFTs loan systems are gaining increasing attention because they allow users to access to liquidity simply owning NFTs. A marketplace of this kind of contract on algorand could allow the interoperability between the NFT marketplace and DeFi.
+The NFTs loan systems are gaining increasing attention because they allow users to access to liquidity simply owning NFTs. A marketplace of this kind of contract on Algorand could allow the interoperability between the NFT marketplace and DeFi.
 Even more, with Algorand state proof this system may interact with other blockchain.
 
 The initial idea involves two key players:
 - a user who owns an NFT and would like to use it as collateral to access credit
-- a counterparty willing to buy the NFT at a predefined price (chosen as the winner of an auction) who grants the minimum price in Algo, all in exchange for repaying the loan in installments with a specified time interval and interest rate.
+- a counterparty willing to buy the NFT at a predefined price (chosen as the winner of an auction) who grants the minimum price in ALGO, all in exchange for repaying the loan in installments with a specified time interval and interest rate.
 
 There are several improvements that could be developed starting from the current scenario.
 One of the possible future developments is to enlarge the pool of potential lenders by considering splitting the NFT into several components. So that subsequently a community willing to lend cryptocurrency in exchange for fractional participation in the ownership of an NFT in case of default and alternatively the interest rate charged. 
