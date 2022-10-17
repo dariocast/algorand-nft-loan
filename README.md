@@ -184,10 +184,6 @@ Scenario 4 -> Borrower does not repay the debt in full. The lender gains the NFT
 
 Scenario 5 -> The contract owner collects the fees stored in the contract
 - pay_me: 7CCPRPXI7RAI2ZDIRIM5HXMVBJE6GIFBWTOBSF3GXCDPEJ36F2ZA
-
-### Potential business benefits 
-
-
  
 
 ## Futures and business value
