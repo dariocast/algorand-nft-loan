@@ -152,7 +152,7 @@ The development of the project led to face and manage several technical challeng
 
 ### Qualitative discussion of security and correctness 
 
-All the input data have been carefully checked. We defined threshold to contrain the input parameters and to avoid overflows when computing the interest. We checked the presence of manager/freeze/clawback addresses of the incoming asset to prevent unauthorized collateral acquisitions. We checked the coherence of the transactions belonging to the same transaction group (i.e., receivers, senders, amounts). We performed multiple tests on the smart contract, based on 5 scenarios (file `src/interact.py` can be used to repeat the tests). We report a description of each scenario and the ID of some example transactions (testnet):
+All the input data have been carefully checked. We defined threshold to contrain the input parameters and to avoid overflows when computing the interest. We checked the presence of manager/freeze/clawback addresses of the incoming asset to prevent unauthorized collateral acquisitions. We checked the coherence of the transactions belonging to the same transaction group (i.e., receivers, senders, amounts). We defined a state variable that simplifies state management. We performed multiple tests on the smart contract, based on 5 scenarios (file `src/interact.py` can be used to repeat the tests). We report a description of each scenario and the ID of some example transactions (testnet):
 
 Scenario 0 -> App Setup. This is used to install the contract
 
