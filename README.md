@@ -137,17 +137,17 @@ A platforms that uses this approach is:
 ## Technical challenges 
 
 The development of the project led to face and manage several technical challenges:
-- the NFT, Algorand Standard Asset with its specific configuration described in the [ARC-0003](https://arc.algorand.foundation/ARCs/arc-0003).
-- economics concept to the loan (i.e. interests).
-- the receive Any Standard Assets as collateral.
-- the splitting of the payback borrower's debt with a interest that is calculated on the portion of the unpaid debt.
-- group of transactions in order to have a more accurate assessment of them.
-- the use of an inner payment transaction to the bidder to perform the payback.
-- temporal parameters has to be calculated in terms of blockchain round. This led to some issue in Testnet already raised to the algorand repository that as been solved pushing arbitrary round number when needed.
-- the reproduction a reusable smart contract using the concept of state, so the same contract can be used multiple times without recreating the app. This is a gain for the contract owner.
-- different scenarios.
-- minumum balance which dynamic optins.
-- inner transactions with 0 fee.
+- The NFT, Algorand Standard Asset with its specific configuration described in the [ARC-0003](https://arc.algorand.foundation/ARCs/arc-0003).
+- Economics concept to the loan (i.e. interests).
+- The receive Any Standard Assets as collateral.
+- The splitting of the payback borrower's debt with a interest that is calculated on the portion of the unpaid debt
+- Group of transactions in order to have a more accurate assessment of them
+- The use of an inner payment transaction to the bidder to perform the payback
+- Temporal parameters has to be calculated in terms of blockchain round. This led to some issue in Testnet already raised to the algorand repository that as been solved pushing arbitrary round number when needed.
+- The reproduction a reusable smart contract using the concept of state, so the same contract can be used multiple times without recreating the app. This is a gain for the contract owner.
+- Different scenarios.
+- Minumum balance which dynamic optins.
+- Inner transactions with 0 fee.
 
 ### Qualitative discussion of security and correctness 
 
