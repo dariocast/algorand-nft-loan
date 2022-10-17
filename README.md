@@ -102,7 +102,7 @@ If B's debt goes to 0, the smart contract gives the NFT back to B. `pay_back` ca
 
 - `pay_me ()`
 
-`pay_me` can only be invoked by the creator of the smart contract. `pay_me` sends the currently collected fees to the creator's address.
+`pay_me` can only be invoked by CO. `pay_me` sends the currently collected fees to CO's address.
 
 
 
