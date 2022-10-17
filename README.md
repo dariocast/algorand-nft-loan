@@ -9,20 +9,25 @@
 ## Environment setup
 
 Create the development environment:
-1. Make sure the docker daemon is running and the docker-compose is correctly installed
-2. Connect to the network
-    * If you do not have the `sandbox` cloned, follow the [Sandobox](https://github.com/algorand/sandbox) installation guidelines otherwise go to step 3.
-3. Launch `sandbox`
-    * `./sendbox up dev`
-4. Clone the repo
-5. Check your python version is `>= 3.10`. You can verify it with the `python --version`
-6. Create the Virtual Environment
+1. Connect to a network
+    * **Using Sandbox**
+      * Make sure the docker daemon is running and the docker-compose is correctly installed
+      * If you do not have the `sandbox` cloned, follow the [Sandobox](https://github.com/algorand/sandbox) installation guidelines otherwise go to step 3. 
+      * Launch `sandbox` with `./sendbox up dev`
+    * **Using Testnet**
+      * Create an account on [PureStake](https://www.purestake.com/) and get an API key
+      * Export in the environment the following variables:
+        * `ALGOD_TOKEN` with your Purestake API key
+        * `ALGOD_ADDRESS` with the address of the Purestake testnet algod
+2. Clone the repo
+3. Check your python version is `>= 3.10`. You can verify it with the `python --version`
+4. Create the Virtual Environment
     * `pip3 install virtualenv`
     * `virtualenv venv`
     * `source venv/bin/activate`
     * `pip3 install pyteal py-algorand-sdk`
-7. Test the environment with https://developer.algorand.org/docs/sdks/python/
-8. Install all the required packages
+5. Test the environment with https://developer.algorand.org/docs/sdks/python/
+6. Install all the required packages
     * `pip install -r requirements.txt`
 
 ## Goal of the project
@@ -129,7 +134,8 @@ The development of the project led to face several technical challenges:
 - The possibility to receive specific assets instead of ALGOs.
 - Smart contract manages group of transactions so it has to be accurate in the evaluation of them.
 - It should use an inner payment transaction to the bidder to perform the payback.
-- The temporal parameters has to be calculated in terms of blockchain round.
+- The temporal parameters has to be calculated in terms of blockchain round. This led to some issue in Testnet already raised to the algorand repository that as been solved pushing arbitrary round number when needed.
+- We tried to reproduce a reusable smart contract using the concept of state, so the same contract can be used multiple times without recreating the app. This is a gain for the contract owner.
 
 ## Futures and business value
 
