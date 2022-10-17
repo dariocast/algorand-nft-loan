@@ -34,16 +34,20 @@ Create the development environment:
 
 The project aims to provide liquidity in terms of cryptocurrency or specific assets that could be addressed with a loan mechanism of owned NFT.
 
+### Use case
+
+The developed system could be associated to the real scenario pawnshop.
+
 ## Smart contract specifications
+
+ In the NFT loan developed, there are three different roles:
+- The Contract Owner (CO) that creates and inizialize the contract
+- The Lender (L) that provides assets to the smart contract
+- The Borrower (B) that provides her NFT as collaterla to borrow cryptocurrency.
 
 Once the *contract owner* created the smart contract, it is able to accept an NFT from an account - *borrower* - for a period of time and stores info on the global state. During this period other accounts - *lenders* - are able to bid in ALGO for that NFT. At any time during this initial period, the borrower can interact with the contract to get back the NFT (in this case the bidded amount returns to the lender) or to accept the loan.
 
 In the second case, there is a predefined period of time in which the borrower must repay the loan to the lender, otherwise, after the deadline, the lender can obtain the NFT by interacting with the contract.
-
- In the NFT loan developed there are three different roles:
-- The Contract Owner (CO)
-- The Borrower (B) 
-- The Lender (L)
 
 The Stateful Smart Contract stores the following information:
 	
@@ -101,7 +105,9 @@ If B's debt goes to 0, the smart contract gives the NFT back to B. `pay_back` ca
 `pay_me` can only be invoked by the creator of the smart contract. `pay_me` sends the currently collected fees to the creator's address.
 
 
+
 ## State of the art  
+
 Public attention towards NFTs has rapidly risen in 2021, when NFT market has experienced record sales.
 In just one year, it has been [shown](https://www.mdpi.com/2227-7390/10/3/335) that NFT market increased from total daily sales of about USD 183,121 in 2020 to an average of USD 38 million at the [end of 2021]( https://nonfungible.com/market/).
 According to [DappRadar](https://dappradar.com/blog/), the third quarter of 2022 saw USD 3.4 billion in NFT sales. From the current trend, it is evident that the digital asset market will be as big as or even bigger than the physical asset market in the long run. In relation to this, over the last years, it was found that an increased number of cryptocurrency projects focused on building financial primitives for the NFT space.
@@ -130,14 +136,31 @@ A platforms that uses this approach is:
 
 ## Technical challenges 
 
-The development of the project led to face several technical challenges:
-- NFT is an Algorand Standard Asset with specific configuration described in the [ARC-0003](https://arc.algorand.foundation/ARCs/arc-0003).
-- The possibility to apply economics concept to the loan (i.e. interests).
-- The possibility to receive specific assets instead of ALGOs.
-- Smart contract manages group of transactions so it has to be accurate in the evaluation of them.
-- It should use an inner payment transaction to the bidder to perform the payback.
-- The temporal parameters has to be calculated in terms of blockchain round. This led to some issue in Testnet already raised to the algorand repository that as been solved pushing arbitrary round number when needed.
-- We tried to reproduce a reusable smart contract using the concept of state, so the same contract can be used multiple times without recreating the app. This is a gain for the contract owner.
+The development of the project led to face and manage several technical challenges:
+- the NFT, Algorand Standard Asset with its specific configuration described in the [ARC-0003](https://arc.algorand.foundation/ARCs/arc-0003).
+- economics concept to the loan (i.e. interests).
+- the receive Any Standard Assets as collateral.
+- the splitting of the payback borrower's debt with a interest that is calculated on the portion of the unpaid debt.
+- group of transactions in order to have a more accurate assessment of them.
+- the use of an inner payment transaction to the bidder to perform the payback.
+- temporal parameters has to be calculated in terms of blockchain round. This led to some issue in Testnet already raised to the algorand repository that as been solved pushing arbitrary round number when needed.
+- the reproduction a reusable smart contract using the concept of state, so the same contract can be used multiple times without recreating the app. This is a gain for the contract owner.
+- different scenarios.
+- minumum balance which dynamic optins.
+- inner transactions with 0 fee.
+
+### Qualitative discussion of security and correctness 
+
+All the input data have been checked in terms of security and correctness.
+
+### Potential business benefits 
+
+The developed scenario provides a profitable solution for all the users that are involved:
+- the borrower obtains her loan
+- the lender has an annual interest rate 
+- the contract owner has an interest rate for each contract created 
+
+The interaction among the users is transparent and the guaranteed by the predefined smart contract.  
 
 ## Futures and business value
 
