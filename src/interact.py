@@ -17,7 +17,7 @@ AUCTION_DURATION = 2
 LOAN_DURATION = 2
 
 # Flag to use sandbox or not
-SANDBOX = False
+SANDBOX = True
 
 # Use testnet or sandbox
 client = sandbox.get_algod_client() if SANDBOX else utils.get_algod_client()
