@@ -68,7 +68,7 @@ def scenarios():
 
     print("Borrower minting NFT")
     asset_id = utils.create_default_nft(client, borrower_account.private_key, borrower_account.address,
-                                  "G3 NFT@arc3", "G3", nft_metadata_github_url)
+                                        "G3 NFT@arc3", "G3", nft_metadata_github_url)
     print("NFT minted with asset ID: {}".format(asset_id))
     #  Providing nft info and payment to allow contract opt in
     allow_contract_to_opt_in(app_addr, app_client_borrower, asset_id)
