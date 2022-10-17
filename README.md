@@ -137,39 +137,70 @@ A platforms that uses this approach is:
 ## Technical challenges 
 
 The development of the project led to face and manage several technical challenges:
-- The NFT, Algorand Standard Asset with its specific configuration described in the [ARC-0003](https://arc.algorand.foundation/ARCs/arc-0003).
+- The NFT can be any Algorand Standard Asset adhering to the standard specifications [ARC-0003](https://arc.algorand.foundation/ARCs/arc-0003).
 - Economics concept to the loan (i.e. interests).
-- The receive Any Standard Assets as collateral.
-- The splitting of the payback borrower's debt with a interest that is calculated on the portion of the unpaid debt
-- Group of transactions in order to have a more accurate assessment of them
-- The use of an inner payment transaction to the bidder to perform the payback
-- Temporal parameters has to be calculated in terms of blockchain round. This led to some issue in Testnet already raised to the algorand repository that as been solved pushing arbitrary round number when needed.
-- The reproduction a reusable smart contract using the concept of state, so the same contract can be used multiple times without recreating the app. This is a gain for the contract owner.
-- Different scenarios.
-- Minumum balance which dynamic optins.
-- Inner transactions with 0 fee.
+- Any Algorand Standard Assets can be received as collateral.
+- The interest is calculated on the portion of the unpaid debt
+- Correct handing of atomic groups is reuqired
+- ThMultiple inner payments/asset transfers must be issued
+- Temporal parameters have to be calculated in terms of blockchain round. This led to some issue in Testnet already raised to the algorand repository that as been solved pushing arbitrary round number when needed.
+- The smart contract can be used multiple times in sequence without recreating the app. This is a gain for the contract owner.
+- Complex logic: we handle multiple scenarios (candle auction, offer cancel, borrower/lender unresponsive, deadlines, etc.).
+- Minumum balance management which dynamic optins.
+- 0-fee inner transactions.
 
 ### Qualitative discussion of security and correctness 
 
-All the input data have been checked in terms of security and correctness.
+All the input data have been carefully checked. We defined threshold to contrain the input parameters and to avoid overflows when computing the interest. We checked the presence of manager/freeze/clawback addresses of the incoming asset to prevent unauthorized collateral acquisitions. We checked the coherence of the transactions belonging to the same transaction group (i.e., receivers, senders, amounts). We performed multiple tests on the smart contract, based on 5 scenarios (file `src/interact.py` can be used to repeat the tests). We report a description of each scenario and the ID of some example transactions (testnet):
+
+Scenario 0 -> App Setup. This is used to install the contract
+
+Scenario 1 -> Loan complete flow: the lender repays the debt
+- provide_access_to_nft: CQFCJNUQQC5XLXXT7VJMXSPQMIP6OSJCHN6UEZTRD7ECRT2F4YVA
+- set_offer: TPVCOKPEAZIDXZBS3P6BFPOFVOBTL4Y6QSOCQWCXD5PGINONXLQQ
+- place_bid: S7AKDKU57VIIVWWJ4TXG6W3LEM5VWVGETQJAHIWTNYI7UGG5TVRQ
+- accept_offer: SWVNWRFORLKXPYHPT57XISNLSWDYCOIFEE2C6FT7A74N22KSSYVA
+- pay_back: CM63JNAITVZ22NDCF3URL65G3GVDOWRQ2V6YTMFMY445V6ADO4SA
+
+Scenario 2 -> Lender calls timeout after auction period ends to give assets and algos back to their original owners
+- provide_access_to_nft: ZILENTZPUESCWQXTYAXV3TYYXRRNO6OW3QT7LRQS34D2TCNJO2RA
+- set_offer: S2FDDOZRLV77X6AK3JQB7JKGXLJUNAGPXQAFBHRW2BF5VEPAQMZQ
+- place_bid: WHZC6UBLJ5OYNLFABFXNJUI5NYVFWSDKAUWZSD6SWPQA5LPRATKQ
+- timeout: XQ6Y5NNVUTCSJJWJ7JEGZFCQN36GW5WS7ZXLO65E32CMUF2XGDXA
+
+Scenario 3 -> Borrower calls cancel offer after mistakenly auctioning the wrong NFT
+- provide_access_to_nft: XNP74X6HITLL7YU5U6YB4G34JUF2QA5S5O3TIUXPS33JGX4U5LGA
+- set_offer: HN6QBSA2EL5QTRDUADFZYCVM25AK4OGGWWVG64EVXY24SV7AHU7Q
+- cancel_offer: LRJ5H2RM4KHKLKURS6HEJ63V7TCCGUG2KLEMAR7D7ZJWNDED25GA
+
+Scenario 4 -> Borrower does not repay the debt in full. The lender gains the NFT
+- provide_access_to_nft: NUSYQKOAG7COUHKXE44OLIIG7V3YOIPMHVGSMFDOGCDJRHSPISNA
+- set_offer: GY7PRLWUXIXZT4Y5U5W3IEBQKWV3GJQCWYPM42RYLUAPWVD73EZQ
+- place_bid: R2YT7ZVGV7PLVHOZAERZYXYR3PQPX2DKDYGF63U2WUIBUCLCKE7A
+- accept_offer: LPPRGJQD4PTDCK7O4TGZ6LA7UKQ4CF2GUEZBRNGEIDMJ6MO7DFCA
+- pay_back: DINIDBP4QNFJVXW6GVQUGGVQKN5GT7M76HR3TZIOHEOCRDE7GSQQ
+- loan_expired: 7P7OF7IAKFNOWGBVKYJLERTPV6KMYI5HQKNWFOMHCQQCPSQRZXZQ
+
+Scenario 5 -> The contract owner collects the fees stored in the contract
+- pay_me: 7CCPRPXI7RAI2ZDIRIM5HXMVBJE6GIFBWTOBSF3GXCDPEJ36F2ZA
 
 ### Potential business benefits 
 
-The developed scenario provides a profitable solution for all the users that are involved:
-- the borrower obtains her loan
-- the lender has an annual interest rate 
-- the contract owner has an interest rate for each contract created 
 
-The interaction among the users is transparent and the guaranteed by the predefined smart contract.  
+ 
 
 ## Futures and business value
 
 The NFTs loan systems are gaining increasing attention because they allow users to access to liquidity simply owning NFTs. A marketplace of this kind of contract on Algorand could allow the interoperability between the NFT marketplace and DeFi.
 Even more, with Algorand state proof this system may interact with other blockchain.
 
-The initial idea involves two key players:
-- a user who owns an NFT and would like to use it as collateral to access credit
-- a counterparty willing to buy the NFT at a predefined price (chosen as the winner of an auction) who grants the minimum price in ALGO, all in exchange for repaying the loan in installments with a specified time interval and interest rate.
+
+The developed scenario provides a profitable solution for all the users that are involved:
+- the borrower obtains her loan by using her NFT as collateral
+- the lender has an annual interest rate on the loaned Algos and obtains the NFT in case the borrower is not able to reapy the debt
+- the contract owner gains an interest rate on each loan cycle processed by the smart contract
+
+The interaction among the users is transparent and the guaranteed by the predefined smart contract. Thus, our virtual pawnshop is not affected by the risks of phisical pownshops: the borrower is guaranteed to receive the NFT back if the loan is payed back. Moreover, the interest rate, the auction duration, and the payback period cannot be modified once the loan is taken, which guarantees transparency in the deal conditions.
 
 There are several improvements that could be developed starting from the current scenario.
 One of the possible future developments is to enlarge the pool of potential lenders by considering splitting the NFT into several components. So that subsequently a community willing to lend cryptocurrency in exchange for fractional participation in the ownership of an NFT in case of default and alternatively the interest rate charged. 
