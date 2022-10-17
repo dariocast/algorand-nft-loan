@@ -99,7 +99,7 @@ class BorrowMyNFT(Application):
         return output.set(
             Bytes("Contract is up and running!")
         )
-
+    # Reset state is used to reset state variables to their default values
     @internal
     def reset_state(self):
         return Seq(
@@ -115,6 +115,7 @@ class BorrowMyNFT(Application):
             self.nft_id.set(Int(0)),
         )
 
+    #pay_me_internal is used by both pay_me and delete. pay_me_internal pays the contract owner by emptying the contract balance. 
     @internal
     def pay_me_internal(self):
         return Seq(
@@ -129,7 +130,7 @@ class BorrowMyNFT(Application):
                 TxnField.fee: Int(0)
             })
         )
-
+    #pay_me is a wrapper around pay_me_internal. 
     @external(authorize=Authorize.only(Global.creator_address()))
     def pay_me(self):
         return Seq(
@@ -140,10 +141,8 @@ class BorrowMyNFT(Application):
         )
 
     # 2 transactions are needed: one to transfer algo and increase the contract balance (the contract minimum balance
-    # must be sufficient to accept the nft), one to optin
+    # must be sufficient to accept the nft), one to optin. provide_access_to_nft handles the optin logic.
 
-    # To be called from borrower to trigger the NFT optin to the contract
-    # this must be in a group of 3 transactions: [app_call, asset_xfer, app_call]
     @external
     def provide_access_to_nft(self, nft: abi.Asset, payment: abi.PaymentTransaction):
         return Seq(
@@ -168,6 +167,7 @@ class BorrowMyNFT(Application):
     # 2 transactions are checked:
     # one to transfer the NFT, 
     # and the one calling set_offer
+    # Borrowers can call set_offer to auction their NFTs
     @external
     def set_offer(
             self,
@@ -193,33 +193,32 @@ class BorrowMyNFT(Application):
                 asset_xfer.get().asset_receiver() == self.address,
                 asset_xfer.get().asset_amount() == Int(1),
                 asset_xfer.get().sender() == Txn.sender(),
+                # check NFT has no dangerous fields set
                 Txn.assets[0] == asset_xfer.get().xfer_asset(),      
                 asset_manager.value()==Global.zero_address(),  
                 asset_clawback.value()==Global.zero_address(), 
                 asset_freeze.value()==Global.zero_address(), 
+                # check state correctness
                 self.state.get() == Int(0),
+                # checking inputs
                 auction_base.get() > Int(0),
                 auction_base.get() < self.MAX_N_ALGOS,
                 auction_period.get() > Int(0),
                 auction_period.get() < self.MAX_AUCTION_PERIOD,
-                payback_deadline.get() > Int(0),
-                payback_deadline.get() < self.MAX_PAYBACK_DEADLINE,
-                
                 # payback now is the number of round into which borrower must pay after accepting loan
                 payback_deadline.get() > Int(0),
-                # TODO other check may be performed
+                payback_deadline.get() < self.MAX_PAYBACK_DEADLINE,
             ),
-            # ManagerAddr, FreezeAddr, ClawbackAddr of the asset must be null
-            # AssetAmount must be 1
-
+            #updatig contract state
             self.state.set(Int(1)),
             self.nft_id.set(asset_xfer.get().xfer_asset()),
             self.auction_base.set(auction_base.get()),
             self.auction_period.set(Global.round()+auction_period.get()),
             self.payback_deadline.set(payback_deadline.get()),
             self.borrower_address.set(Txn.sender())
-        )
+        ) 
 
+    #Place bid isused by the lender to bis for the NFT
     @external
     def place_bid(self, payment: abi.PaymentTransaction):
         return Seq(
@@ -246,6 +245,7 @@ class BorrowMyNFT(Application):
             self.lender_address.set(payment.get().sender())
         )
 
+    #Accept bid is used by the borrower to take the loan
     @external
     def accept_bid(self):
         return Seq(
@@ -268,7 +268,7 @@ class BorrowMyNFT(Application):
                 })
         )
 
-
+    #if the auction period expires and no offer was accepted, the lender may decide to call timeout and return the contract holdings to their original owners
     @external
     def timeout(self):
         return Seq(
@@ -300,7 +300,7 @@ class BorrowMyNFT(Application):
             InnerTxnBuilder.Submit(),
             self.reset_state()
         )
-
+    #If the bids are low, the borower may decide to keep the NFT instead of accepting the loan
     @external
     def cancel_offer(self):
         return Seq(
@@ -333,6 +333,7 @@ class BorrowMyNFT(Application):
             self.reset_state()
         )
 
+    #After accepting the loan, the borrower uses pay_back to pay the loan back. The loan can be repayed in multiple payments
     @external
     def pay_back(self, payment: abi.PaymentTransaction):
         # interest=debt_left*INTEREST_RATE_NUM*blocks/INTEREST_RATE_DEN. Notice: INTEREST_RATE_NUM=1
@@ -348,6 +349,7 @@ class BorrowMyNFT(Application):
             ),
             self.debt_left.set(self.debt_left.get() + interest),
             self.last_interest_update_block.set(Global.round()),
+            #the borrower sent too many algos
             If(payment.get().amount() > self.debt_left.get()).Then(Seq(
                 InnerTxnBuilder.Begin(),
                 InnerTxnBuilder.SetFields(
@@ -377,6 +379,7 @@ class BorrowMyNFT(Application):
                     }),
                 InnerTxnBuilder.Submit(),
                 self.reset_state()
+            #the borrower sent the perfect amount of algos    
             )).ElseIf(payment.get().amount() == self.debt_left.get()).Then(Seq(
                 InnerTxnBuilder.Begin(),
                 InnerTxnBuilder.SetFields(
@@ -398,6 +401,7 @@ class BorrowMyNFT(Application):
                     }),
                 InnerTxnBuilder.Submit(),
                 self.reset_state()
+            #the borrower payed back a portion of the loan    
             )).Else(Seq(
                 InnerTxnBuilder.Execute({
                     TxnField.type_enum: TxnType.Payment,
@@ -408,7 +412,7 @@ class BorrowMyNFT(Application):
                 self.debt_left.set(self.debt_left.get() - payment.get().amount())
             ))
         )
-
+    #if the payback period expires, the lender can obtain the NFT
     @external
     def loan_expired(self):
         return Seq(
@@ -430,19 +434,15 @@ class BorrowMyNFT(Application):
             self.reset_state()
         )
 
-        # Add an external method with ABI method signature `hello(string)string`
-
+      
+    #utility to access the contract state
     @external(read_only=True)
     def read_state(self, *, output: abi.Uint64):
         """Read current state."""
         return output.set(self.state)
 
-    @external
-    def hello(self, name: abi.String, *, output: abi.String):
-        # Set output to the result of `Hello, `+name
-        return output.set(Concat(Bytes("Hello, "), name.get()))
 
-
+#utility to write the teal code to file for debugging purposes
 if __name__ == "__main__":
     import os
     import json

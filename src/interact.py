@@ -17,7 +17,7 @@ AUCTION_DURATION = 2
 LOAN_DURATION = 2
 
 # Flag to use sandbox or not
-SANDBOX = True
+SANDBOX = False
 
 # Use testnet or sandbox
 client = sandbox.get_algod_client() if SANDBOX else utils.get_algod_client()
@@ -26,6 +26,8 @@ accounts = sandbox.get_accounts() if SANDBOX else utils.get_testnet_account()
 contract_owner_account = accounts.pop()
 borrower_account = accounts.pop()
 lender_account = accounts.pop()
+
+print("Addresses", contract_owner_account.address, borrower_account.address, lender_account.address)
 
 # Create instance of the BorrowMyNFT contract
 app = BorrowMyNFT()
@@ -37,7 +39,7 @@ app_client = ApplicationClient(
     signer=contract_owner_account.signer
 )
 
-
+receipts=[]
 def demo():
     print("### NFT LOAN MANAGER SCENARIOS ###\n")
 
@@ -55,7 +57,7 @@ def demo():
     print(f"App created in txid: {txid} with:\n\tapp_id: {app_id}\n\tapp_addr: {app_addr}\n")
 
     # Fund the contract for minimum balance
-    app_client.fund(1 * consts.algo)
+    app_client.fund(100 * consts.milli_algo)
     print(f"Contract Balance: {client.account_info(app_addr).get('amount')} microAlgos \n")
 
     print(">>> SCENARIO 1: Loan complete flow <<<\n")
@@ -285,7 +287,6 @@ def demo():
         print("Contract deleted")
     except LogicException as e:
         print(f"Logic Exception: {e}")
-
     print("### END ###\n")
 
 
@@ -295,10 +296,11 @@ def pay_me(app_client_to_use, app_addr):
     sp.flat_fee = True
     sp.fee = 2000
     # need passing asset id as foreign, contract search referenced id (saved in state) in that array
-    app_client_to_use.call(
+    receipt=app_client_to_use.call(
         app.pay_me,
         suggested_params=sp,
     )
+    receipts.append("pay_me: "+receipt.tx_id)
 
 
 def cancel_offer(app_client_to_use, asset_id):
@@ -307,11 +309,12 @@ def cancel_offer(app_client_to_use, asset_id):
     sp.flat_fee = True
     sp.fee = 3000
     # need passing asset id as foreign, contract search referenced id (saved in state) in that array
-    app_client_to_use.call(
+    receipt = app_client_to_use.call(
         app.cancel_offer,
         suggested_params=sp,
         foreign_assets=[asset_id],
     )
+    receipts.append("cancel_offer: "+receipt.tx_id)
 
 def timeout(app_client_to_use, asset_id, foreign_addr):
     print("> Cancelling offer (timeout)")
@@ -319,12 +322,13 @@ def timeout(app_client_to_use, asset_id, foreign_addr):
     sp.flat_fee = True
     sp.fee = 3000
     # need passing asset id as foreign, contract search referenced id (saved in state) in that array
-    app_client_to_use.call(
+    receipt=app_client_to_use.call(
         app.timeout,
         suggested_params=sp,
         foreign_assets=[asset_id],
         accounts=[foreign_addr]
     )
+    receipts.append("timeout: "+receipt.tx_id)
 
 
 def claim_nft_after_loan_expiration(app_client_to_use, asset_id):
@@ -336,7 +340,7 @@ def claim_nft_after_loan_expiration(app_client_to_use, asset_id):
     sp = client.suggested_params()
     sp.flat_fee = True
     sp.fee = 2000
-    app_client_to_use.call(
+    receipt=app_client_to_use.call(
         app.loan_expired,
         suggested_params=sp,
         foreign_assets=[asset_id],
@@ -344,7 +348,7 @@ def claim_nft_after_loan_expiration(app_client_to_use, asset_id):
     print("Lender now holds:")
     utils.print_asset_holding(client, lender_account.address, asset_id)
     print("NFT claimed")
-
+    receipts.append("loan_expired: "+receipt.tx_id)
 
 def pay_back(app_client_to_use, app_addr, amount_to_payback, asset_id):
     print(f"> NFT borrower paybacks {amount_to_payback} of the loan")
@@ -361,25 +365,26 @@ def pay_back(app_client_to_use, app_addr, amount_to_payback, asset_id):
         ),
         signer=borrower_account.signer,
     )
-    app_client_to_use.call(
+    receipt=app_client_to_use.call(
         app.pay_back,
         suggested_params=sp,
         payment=payment_txn,
         foreign_assets=[asset_id],
         accounts=[lender_account.address],
     )
-
+    receipts.append("pay_back: "+receipt.tx_id)
 
 def accept_offer(app_client_to_use):
     print("> Borrower accepting the offer")
     sp = client.suggested_params()
     sp.flat_fee = True
     sp.fee = 2000
-    app_client_to_use.call(
+    receipt=app_client_to_use.call(
         app.accept_bid,
         suggested_params=sp,
     )
     print("Offer accepted")
+    receipts.append("accept_offer: "+receipt.tx_id)
 
 
 def place_bid(app_addr, app_client_to_use, bid_amount):
@@ -397,12 +402,13 @@ def place_bid(app_addr, app_client_to_use, bid_amount):
         ),
         signer=lender_account.signer,
     )
-    app_client_to_use.call(
+    receipt=app_client_to_use.call(
         app.place_bid,
         suggested_params=sp,
         payment=payment_txn,
     )
     print("Bid placed")
+    receipts.append("place_bid: "+receipt.tx_id)
 
 
 def set_new_offer(app_addr, app_client_to_use, asset_id, auction_base, auction_duration):
@@ -421,7 +427,7 @@ def set_new_offer(app_addr, app_client_to_use, asset_id, auction_base, auction_d
     current_round = client.status().get('last-round')
     print(f"Current round: {current_round}")
     ending_auction_round = current_round + auction_duration  # about ten minutes
-    app_client_to_use.call(
+    receipt=app_client_to_use.call(
         app.set_offer,
         suggested_params=sp,
         asset_xfer=asset_xfer_txn,
@@ -431,6 +437,7 @@ def set_new_offer(app_addr, app_client_to_use, asset_id, auction_base, auction_d
         foreign_assets=[asset_id],
     )
     print("Offer set")
+    receipts.append("set_offer: "+receipt.tx_id)
     return ending_auction_round
 
 
@@ -456,14 +463,14 @@ def allow_contract_to_opt_in(app_addr, app_client_to_use, asset_id):
     # Double fee to cover inner transaction fee
     sp.flat_fee = True
     sp.fee = 2000
-    app_client_to_use.call(
+    receipt=app_client_to_use.call(
         app.provide_access_to_nft,
         suggested_params=sp,
         nft=asset_id,
         payment=payment_txn,
     )
     print("Provided access to NFT")
-
+    receipts.append("provide_access_to_nft: "+receipt.tx_id)
 
 if __name__ == "__main__":
     demo()
