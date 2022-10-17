@@ -36,7 +36,7 @@ The project aims to provide liquidity in terms of cryptocurrency or specific ass
 
 ### Use case
 
-The developed system could be associated to the real scenario pawnshop.
+The developed system can be seen as a kind of virtual pawn shop. The use case involves a user who has an asset, in this case an NFT, that he does not want to deprive himself of but at the same time has a need for cryptocurrencies. Through our smart contract, the owner of the NFT has the opportunity to receive a loan, allocated through an auction system, from a pool of potential investors using his NFT as collateral. At the end of the predetermined period of time he can then repay the debt with due interest and have his NFT back.
 
 ## Smart contract specifications
 
@@ -63,21 +63,21 @@ The Stateful Smart Contract stores the following information:
 	- state (current contract state)
 
 The smart contract supports the following operations:
-- `provide_access_to_nft(borrower_address, NFT, n_Algos)`
+- `provide_access_to_nft(NFT, payment)`
 
-`provide_access_to_nft` is sent by B to the smart contract to trigger the NFT optin.
+`provide_access_to_nft` is sent by B to the smart contract to trigger the NFT optin. B must provide an atomic payment transaction to address the minimum balance requirements (0.1 Algo).
 
-- `set_offer (borrower_address, NFT, auction_base, auction_period, payback_deadline)`
+- `set_offer (NFT, auction_base, auction_period, payback_deadline)`
 
-B sends the NFT to the smart contract. B establishes a minimum loan threshold (`auction_base`), the number of blocks of the auction validity period (`auction_period`), and the loan payback deadline (`payback_deadline`), which is the number of blocks from when `accept_bid` is invoked. The smart contract stores B's address (`borrower_address`) for future ownership transfers.
+B sends the NFT to the smart contract through an atomic asset transfer transaction. B establishes a minimum loan threshold (`auction_base`), the number of blocks of the auction validity period (`auction_period`), and the loan payback deadline (`payback_deadline`), which is the number of blocks from when `accept_bid` is invoked. The smart contract stores B's address (`borrower_address`) for future ownership transfers.
 
-- `place_bid (lender_address, n_Algos)`
+- `place_bid (n_Algos)`
 
-`place_bid` is invokable only during the auction validity period. L sends some Algos (`n_Algos`) to the smart contract. The smart contract stores the lender's address (`lender_address`). The amount of Algos must be greater than the loan threshold and the current highest bid. The smart contract refunds the previous highest bid and replaces it with the new bid.
+`place_bid` is invokable only during the auction validity period. L sends some Algos (`n_Algos`) to the smart contract through an atomic payment transaction. The smart contract stores the lender's address (`lender_address`). The amount of Algos must be greater than the loan threshold and the current highest bid. The smart contract refunds the previous highest bid and replaces it with the new bid.
 
 - `accept_bid ()`
 
-`accept_bid` is invokable only by B. The smart contract keeps a small percentage of the `n_Algos` and forwards the remaining part to B. the percentage represents a service fee that CO can collect by invoking the `pay_me` function. The smart contract still owns the NFT. `cancel_offer` and `timeout` can no longer be invoked.
+`accept_bid` is invokable only by B. The smart contract keeps a small percentage of the `n_Algos` and forwards the remaining part to B. The percentage represents a service fee that CO can collect by invoking the `pay_me` function. The smart contract still owns the NFT. `cancel_offer` and `timeout` can no longer be invoked.
 
 - `timeout ()`
 
@@ -88,9 +88,9 @@ Anyone can invoke timeout to return the managed assets (`NFT, n_Algos`) to their
 
 Only B can invoke `cancel_offer`, and only if `accept_bid` is not invoked. The smart contract returns the managed assets (`NFT, n_Algos`) to their original owners. 
 
-- `pay_back (borrower_address, m_Algos)`
+- `pay_back (m_Algos)`
 
-B gives some Algos (`m_Algos`) to the smart contract. `pay_back` updates the current debt by summing the accumulated interest. `m_Algos` must repay at least the accumulated compound interest.
+B gives some Algos (`m_Algos`) to the smart contract through an atomic payment transaction. `pay_back` updates the current debt by summing the accumulated interest. `m_Algos` must repay at least the accumulated interest.
 
 If `m_Algos` exceeds B's current debt, the smart contract returns the exceeding Algos to B. The smart contract subtracts `m_Algos` from B's debt. The smart contract forwards the the `m_Algos` to L.
 
@@ -100,7 +100,7 @@ If B's debt goes to 0, the smart contract gives the NFT back to B. `pay_back` ca
 
 `loan_expired` can be invoked only by L after the loan payback deadline expires. L receives the NFT from the smart contract. `pay_back` cannot be invoked anymore.
 
-- `pay_me (creator_address)`
+- `pay_me ()`
 
 `pay_me` can only be invoked by the creator of the smart contract. `pay_me` sends the currently collected fees to the creator's address.
 
