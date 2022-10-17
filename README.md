@@ -102,9 +102,9 @@ If B's debt goes to 0, the smart contract gives the NFT back to B. `pay_back` ca
 
 
 ## State of the art  
-Public attention towards NFTs has rapidly rosen in 2021, when NFT market has experienced record sales.
+Public attention towards NFTs has rapidly risen in 2021, when NFT market has experienced record sales.
 In just one year, it has been [shown](https://www.mdpi.com/2227-7390/10/3/335) that NFT market increased from total daily sales of about USD 183,121 in 2020 to an average of USD 38 million at the [end of 2021]( https://nonfungible.com/market/).
-According to [DappRadar](https://dappradar.com/blog/), the third quarter of 2022 saw $3.4 billion in NFT sales. From the current trend, it is evident that the digital asset market will be as big as or even bigger than the physical asset market in the long run. In relation to this, over the last years, it was found that an increased number of cryptocurrency projects focused on building financial primitives for the NFT space.
+According to [DappRadar](https://dappradar.com/blog/), the third quarter of 2022 saw USD 3.4 billion in NFT sales. From the current trend, it is evident that the digital asset market will be as big as or even bigger than the physical asset market in the long run. In relation to this, over the last years, it was found that an increased number of cryptocurrency projects focused on building financial primitives for the NFT space.
 One of them are the lending platforms where users can borrow fungible tokens by collateralizing the loan with their NFT. 
 NFT lending platforms allow users to borrow liquid assets by using their NFTs as collateral. 
 It is possible to distinguish three types of lending pool approaches: peer to peer, peer to pool, and collateralized debt position (CDP).
