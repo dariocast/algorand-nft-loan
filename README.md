@@ -140,13 +140,14 @@ The development of the project led to face and manage several technical challeng
 - The NFT can be any Algorand Standard Asset adhering to the standard specifications [ARC-0003](https://arc.algorand.foundation/ARCs/arc-0003).
 - Economics concept to the loan (i.e. interests).
 - Any Algorand Standard Assets can be received as collateral.
-- The interest is calculated on the portion of the unpaid debt
+- The interest is dynamically calculated on the portion of the unpaid debt
+- The debt can be repayed at any moment, in any percentage
 - Correct handing of atomic groups is reuqired
-- ThMultiple inner payments/asset transfers must be issued
+- Multiple inner payments/asset transfers must be issued
 - Temporal parameters have to be calculated in terms of blockchain round. This led to some issue in Testnet already raised to the algorand repository that as been solved pushing arbitrary round number when needed.
 - The smart contract can be used multiple times in sequence without recreating the app. This is a gain for the contract owner.
 - Complex logic: we handle multiple scenarios (candle auction, offer cancel, borrower/lender unresponsive, deadlines, etc.).
-- Minumum balance management which dynamic optins.
+- Minumum balance management with dynamic optins.
 - 0-fee inner transactions.
 
 ### Qualitative discussion of security and correctness 
