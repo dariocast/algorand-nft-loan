@@ -51,7 +51,7 @@ The main challenges are related to the limits that Algorand imposes on smart con
 * Atomic groups (i.e., transactions that must be committed altogether or none at all) must be handled.
 * B must be able to pay the loan back in any percentage and in any number of payments. The interest must be computed correctly and only on the portion of the loan that is yet to be paid—We implemented the logic, but further testing is required on this aspect.
 
-##Tools
+## Tools
 We used the following tools:
 
 
@@ -59,10 +59,10 @@ We used the following tools:
 * [Beaker](https://algorand-devrel.github.io/beaker/html/index.html), a PyTeal-based framework for smart contract development in Algorand.
 
 
-#Smart contract description
+# Smart contract description
 This section describes how the smart contract handles the transactions received by B, L, and CO. The smart contract is stateful and uses the contract state to keep track of the relevant information. Some information could be moved to the account state of B/L to improve the cost efficiency of the contract, but we preferred to avoid such an option, as the account state can be deleted by its owner (B/L) at will. Thus, the smart contract should be designed to be unaffected by such a deletion that may happen at any moment. 
 
-##Contract state
+## Contract state
 The contract state stores the following information:
 
 
