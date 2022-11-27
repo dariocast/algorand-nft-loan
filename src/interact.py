@@ -354,7 +354,7 @@ def pay_back(app_client_to_use, app_addr, amount_to_payback, asset_id):
     print(f"> NFT borrower paybacks {amount_to_payback} of the loan")
     sp = client.suggested_params()
     sp.flat_fee = True
-    sp.fee = 4000
+    sp.fee = 5000
     payment_txn = TransactionWithSigner(
         txn=transaction.PaymentTxn(
             sender=borrower_account.address,
@@ -391,7 +391,7 @@ def place_bid(app_addr, app_client_to_use, bid_amount):
     print("> Lender placing a bid")
     sp = client.suggested_params()
     sp.flat_fee = True
-    sp.fee = 2000
+    sp.fee = 3000
     payment_txn = TransactionWithSigner(
         txn=transaction.PaymentTxn(
             sender=lender_account.address,
@@ -462,7 +462,7 @@ def allow_contract_to_opt_in(app_addr, app_client_to_use, asset_id):
     )
     # Double fee to cover inner transaction fee
     sp.flat_fee = True
-    sp.fee = 2000
+    sp.fee = 3000
     receipt=app_client_to_use.call(
         app.provide_access_to_nft,
         suggested_params=sp,

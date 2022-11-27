@@ -148,7 +148,7 @@ class BorrowMyNFT(Application):
         return Seq(
             Assert(
                 Global.group_size() == Int(2),
-                Txn.fee() >= self.FEE * Int(2),
+                Txn.fee() >= self.FEE * Int(3),
                 payment.get().receiver() == self.address,
                 payment.get().amount() >= self.MIN_BAL,
             ),
@@ -224,7 +224,7 @@ class BorrowMyNFT(Application):
         return Seq(
             Assert(
             	Global.group_size() == Int(2),	
-                Txn.fee() >= Global.min_txn_fee() * Int(2),	
+                Txn.fee() >= Global.min_txn_fee() * Int(3),	
                 self.state.get() == Int(1),	
                 payment.get().receiver() == self.address,	
                 payment.get().amount() > self.highest_bid.get(),	
@@ -306,7 +306,7 @@ class BorrowMyNFT(Application):
         return Seq(
             Assert(
                 Txn.sender() == self.borrower_address.get(),
-                self.state == Int(1),
+                self.state.get() == Int(1),
                 Txn.fee() >= Global.min_txn_fee() * Int(3),
             ),
             InnerTxnBuilder.Begin(),
@@ -342,7 +342,7 @@ class BorrowMyNFT(Application):
         return Seq(
             Assert(
                 Global.group_size() == Int(2),	
-                Txn.fee() >= Global.min_txn_fee() * Int(4),	
+                Txn.fee() >= Global.min_txn_fee() * Int(5),	
                 self.state.get() == Int(2),	
                 payment.get().receiver() == self.address,	
                 payment.get().amount() >= interest
@@ -401,7 +401,7 @@ class BorrowMyNFT(Application):
                     }),
                 InnerTxnBuilder.Submit(),
                 self.reset_state()
-            #the borrower payed back a portion of the loan    
+            #the borrower paid back a portion of the loan    
             )).Else(Seq(
                 InnerTxnBuilder.Execute({
                     TxnField.type_enum: TxnType.Payment,
