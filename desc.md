@@ -390,6 +390,8 @@ Once the smart contract is ready to accept the NFT, B can invoke `set_offer()` t
 
 Once `pay_back()` is invoked, the smart contract updates the current debt by summing the accumulated interest. Then, the smart contract subtracts `payment` Algos from B's debt and forwards the `payment` Algos to L. If B's debt goes to 0, the smart contract gives the NFT back to B. `pay_back()` can be invoked after the payback deadline expires but not after `loan_expired()` is invoked.
 
+The smart contract updates the `last_interest_update_block` each time `pay_back()` is invoked. Thus, the interest is computed only on the portion of the debt that is yet to be paid, not on the original loan. The interest rate is `INTEREST_RATE_NUM`/`INTEREST_RATE_DEN`. In the current implementation, `INTEREST_RATE_NUM` and `INTEREST_RATE_DEN` are constants. Thus, the (simple) interest is computed as follows: `interest=debt_left*INTEREST_RATE_NUM*(current_block-last_interest_update_block)/INTEREST_RATE_DEN` (notice that `INTEREST_RATE_NUM=1`)
+
 ### `loan_expired()`
 
 
